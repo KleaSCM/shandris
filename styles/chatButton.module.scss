@@ -2,11 +2,11 @@
     background: #007bff;
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: 10px 16px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
-    margin-right: 5px;
+    transition: background 0.2s ease-in-out;
   }
   
   .button:hover {

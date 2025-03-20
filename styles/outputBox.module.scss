@@ -7,15 +7,17 @@
   .outputBox {
     width: 100%;
     min-height: 100px;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
-    background: #f1f1f1;
+    background: #e8f5e9;
+    color: #333;
   }
   
   .buttonGroup {
     display: flex;
+    justify-content: flex-end;
     gap: 10px;
   }
   

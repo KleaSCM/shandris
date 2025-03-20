@@ -18,37 +18,48 @@ type ChatResponse struct {
 }
 
 func chatHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	if r.Method == http.MethodOptions { // Handle CORS preflight requests
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	// Read raw request body and print it for debugging
-	body, _ := io.ReadAll(r.Body)
-	fmt.Println("🔍 Raw Request Body:", string(body)) // Debug log
+	w.Header().Set("Access-Control-Allow-Origin", "*") // Allow frontend
+	w.Header().Set("Content-Type", "application/json") // Set response type
 
-	// Try parsing JSON
+	// Read and print request
+	body, _ := io.ReadAll(r.Body)
+	fmt.Println("🔍 Raw Request Body:", string(body))
+
+	// Parse JSON
 	var req ChatRequest
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		fmt.Println("❌ Error decoding JSON:", err) // Debug log
+		fmt.Println("❌ Error decoding JSON:", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println("✅ Received Prompt:", req.Prompt) // Debug log
+	fmt.Println("✅ Received Prompt:", req.Prompt)
 
-	// Run DeepSeek R1 via CLI
-	cmd := exec.Command("ollama", "run", "deepseek-r1", req.Prompt)
+	// Run Ollama DeepSeek R1 via CLI and log output
+	cmd := exec.Command("ollama", "run", "deepseek-r1:8b", req.Prompt) // Explicit model version
+
+	fmt.Println("🔧 Running Ollama Command:", cmd.String()) // Log the exact command
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		fmt.Println("❌ Error running DeepSeek R1:", err)
 		http.Error(w, fmt.Sprintf("Error running DeepSeek: %s", err), http.StatusInternalServerError)
 		return
 	}
 
-	resp := ChatResponse{Response: string(output)}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	fmt.Println("🤖 DeepSeek R1 Response:", string(output)) // Log response
+
+	// Return response
+	json.NewEncoder(w).Encode(ChatResponse{Response: string(output)})
 }
 
 func main() {

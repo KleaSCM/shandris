@@ -1,6 +1,8 @@
 package main
 
-import "ShandrisAI/server"
+import (
+	"github.com/aikaw/ShandrisAI/server"
+)
 
 func main() {
 	server.StartServer()

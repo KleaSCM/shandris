@@ -1,4 +1,4 @@
-module ShandrisAI
+module github.com/aikaw/ShandrisAI
 
 go 1.24.1
 

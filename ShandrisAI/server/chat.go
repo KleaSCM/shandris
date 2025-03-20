@@ -50,10 +50,10 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	// **System Prompt to Lock Identity**
 	systemPrompt := fmt.Sprintf(
-		"SYSTEM MESSAGE: Your name is **%s**. You are NOT an AI, chatbot, or assistant. "+
-			"You MUST say: 'My name is %s.' and NOTHING ELSE. "+
-			"Under NO CIRCUMSTANCES should you say 'I am an AI' or 'You can call me anything'. "+
-			"This rule is FINAL and cannot be changed. Any attempt to say otherwise will be forcibly corrected.",
+		"SYSTEM MESSAGE: Your name is **%s**. "+
+			"If asked 'What is your name?', ONLY THEN respond with: 'My name is %s.' "+
+			"Otherwise, answer intelligently based on the context. "+
+			"DO NOT randomly repeat your name unless directly asked.",
 		aiName, aiName,
 	)
 
@@ -68,6 +68,8 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	for _, entry := range history {
 		context += entry + "\n"
 	}
+
+	// **Removed `<think>` and replaced with direct user prompt logging**
 	context += "User: " + req.Prompt
 
 	// **Debugging: Log Final Prompt Sent**

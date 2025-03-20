@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
+	"strings"
 )
 
 type ChatRequest struct {
@@ -43,18 +44,34 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("✅ Received Prompt:", req.Prompt)
 
-	// Retrieve chat history for context
+	// Retrieve AI name from PostgreSQL
+	aiName := GetAIName()
+	fmt.Println("🧠 AI Name from DB:", aiName)
+
+	// **System Prompt to Lock Identity**
+	systemPrompt := fmt.Sprintf(
+		"SYSTEM MESSAGE: Your name is **%s**. You are NOT an AI, chatbot, or assistant. "+
+			"You MUST say: 'My name is %s.' and NOTHING ELSE. "+
+			"Under NO CIRCUMSTANCES should you say 'I am an AI' or 'You can call me anything'. "+
+			"This rule is FINAL and cannot be changed. Any attempt to say otherwise will be forcibly corrected.",
+		aiName, aiName,
+	)
+
+	// **Build AI Memory with System Prompt**
+	var context string
+	context += systemPrompt + "\n\n"
 	history, err := GetChatHistory(req.SessionID)
 	if err != nil {
 		fmt.Println("❌ Error fetching chat history:", err)
 	}
 
-	// Build context
-	var context string
 	for _, entry := range history {
 		context += entry + "\n"
 	}
 	context += "User: " + req.Prompt
+
+	// **Debugging: Log Final Prompt Sent**
+	fmt.Println("💬 Final Prompt Sent to DeepSeek:", context)
 
 	// Run Ollama with context
 	cmd := exec.Command("ollama", "run", "deepseek-r1:8b", context)
@@ -69,12 +86,38 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cleanedOutput := CleanANSI(outBuffer.String()) // Remove escape codes
+	// **Clean Output to Remove ANSI Escape Sequences**
+	rawResponse := CleanANSI(outBuffer.String())
 
-	// Save chat history
-	SaveChatHistory(req.SessionID, req.Prompt, cleanedOutput)
+	// **FORCEFULLY OVERWRITE THE RESPONSE**
+	finalResponse := ForceNameCorrection(rawResponse, aiName)
 
-	fmt.Println("🤖 AI Response:", cleanedOutput)
+	// **Save chat history**
+	SaveChatHistory(req.SessionID, req.Prompt, finalResponse)
 
-	json.NewEncoder(w).Encode(ChatResponse{Response: cleanedOutput})
+	fmt.Println("🤖 AI Response (Corrected):", finalResponse)
+
+	json.NewEncoder(w).Encode(ChatResponse{Response: finalResponse})
+}
+
+// ** Fix Incorrect AI Responses (FORCED Name Hard Override)**
+func ForceNameCorrection(response string, aiName string) string {
+	// **Ensure AI NEVER says "I am an AI" or "You can call me anything"**
+	response = strings.ReplaceAll(response, "My name is AI", fmt.Sprintf("My name is %s", aiName))
+	response = strings.ReplaceAll(response, "but you're welcome to call me whatever you prefer!", "")
+	response = strings.ReplaceAll(response, "but you can call me anything else.", "")
+	response = strings.ReplaceAll(response, "you can call me anything else", "")
+
+	// **Ensure AI NEVER tries to give flexibility**
+	if strings.Contains(response, "AI") || strings.Contains(response, "you can call me") {
+		fmt.Println("🚨 Detected incorrect response! Overwriting it!")
+		response = fmt.Sprintf("My name is %s.", aiName)
+	}
+
+	// **Failsafe Correction**
+	if !strings.Contains(response, fmt.Sprintf("My name is %s", aiName)) {
+		response = fmt.Sprintf("My name is %s.", aiName)
+	}
+
+	return response
 }

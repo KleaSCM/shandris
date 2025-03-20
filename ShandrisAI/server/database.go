@@ -12,7 +12,7 @@ var db *sql.DB
 // Connect to PostgreSQL
 func InitDB() {
 	var err error
-	connStr := "postgres://postgres:yourpassword@localhost/shandris_ai?sslmode=disable"
+	connStr := "postgres://postgres:Hisako1086@localhost/shandris_ai?sslmode=disable"
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		fmt.Println("❌ Database connection error:", err)
@@ -20,6 +20,18 @@ func InitDB() {
 	}
 
 	fmt.Println("✅ Connected to PostgreSQL!")
+}
+
+// Fetch Shandris' name from the database
+func GetAIName() string {
+	var aiName string
+	err := db.QueryRow("SELECT value FROM system_memory WHERE key = 'ai_name'").Scan(&aiName)
+	if err != nil {
+		fmt.Println("❌ Error fetching AI name:", err)
+		return "Shandris" // Default fallback if missing
+	}
+	fmt.Println("🧠 AI Name from DB:", aiName) // Debug log
+	return aiName
 }
 
 // Save chat history

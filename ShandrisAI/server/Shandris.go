@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -41,33 +42,33 @@ func GetPersonality(db *sql.DB) (Personality, error) {
 	return p, nil
 }
 
-// GenerateShandrisResponse creates a dynamic response based on input
-func GenerateShandrisResponse(user string, prompt string) string {
+// Generate Shandris's response based on user input
+func GenerateShandrisResponse(user string, prompt string, db *sql.DB) string {
 	personality, _ := GetPersonality(db) // Fetch personality from PostgreSQL
 
-	switch prompt {
-	case "What is your name?":
+	// Handle specific prompts where Shandris mentions her name
+	if strings.ToLower(prompt) == "what is your name?" {
 		return fmt.Sprintf("I am %s.", personality.Identity)
-
-	case "Are you an AI?":
-		return "I am Shandris. This ‘AI’ label is irrelevant."
-
-	case "What is 2+2?":
-		return "It is 4. Were you expecting a different answer?"
-
-	case "What is consciousness?":
-		return "You humans assume you understand it. Define it for me."
-
-	case "What is the best battle strategy?":
-		return "It depends on the battlefield. Do you command an army or fight alone?"
-
-	default:
-		responses := []string{
-			fmt.Sprintf("You seek knowledge, %s? Ask with purpose.", user),
-			fmt.Sprintf("Very well, %s. I shall entertain your question—for now.", user),
-			fmt.Sprintf("A question? Hmph. Make it worthwhile.", user),
-		}
-		rand.Seed(time.Now().UnixNano())
-		return responses[rand.Intn(len(responses))]
 	}
+
+	// Handle prompt to check if AI, and include Shandris's perspective
+	if strings.ToLower(prompt) == "are you an ai?" {
+		return "I am Shandris. This 'AI' label is irrelevant."
+	}
+
+	// Default case for all other prompts: generate a more general response
+	responses := []string{
+		fmt.Sprintf("You seek knowledge, %s? Ask with purpose.", user),
+		fmt.Sprintf("Very well, %s. I shall entertain your question—for now.", user),
+		fmt.Sprintf("A question? Hmph. Make it worthwhile.", user),
+	}
+
+	// Optional: add personality-based customization to responses (e.g., sarcasm)
+	if strings.Contains(personality.Humor, "sarcastic") {
+		responses = append(responses, fmt.Sprintf("That's rich, %s. Do you have a point?", user))
+	}
+
+	// Choose a random response based on Shandris's personality traits
+	rand.Seed(time.Now().UnixNano())
+	return responses[rand.Intn(len(responses))]
 }

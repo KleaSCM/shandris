@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -69,57 +70,51 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		context += entry + "\n"
 	}
 
-	// **Removed `<think>` and replaced with direct user prompt logging**
 	context += "User: " + req.Prompt
 
-	// **Debugging: Log Final Prompt Sent**
-	fmt.Println("💬 Final Prompt Sent to DeepSeek:", context)
+	// **Write Context to a Temp File**
+	tmpFile, err := os.CreateTemp("", "deepseek_input_*.txt")
+	if err != nil {
+		fmt.Println("❌ Error creating temp file:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	defer os.Remove(tmpFile.Name()) // Cleanup temp file after execution
 
-	// Run Ollama with context
-	cmd := exec.Command("ollama", "run", "deepseek-r1:8b", context)
-	var outBuffer bytes.Buffer
+	_, err = tmpFile.WriteString(context)
+	tmpFile.Close()
+	if err != nil {
+		fmt.Println("❌ Error writing to temp file:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	cmd := exec.Command("C:\\Users\\aikaw\\AppData\\Local\\Programs\\Ollama\\ollama.exe", "run", "deepseek-r1:8b")
+	cmd.Stdin = strings.NewReader(context) // Pipe the context directly
+
+	// Log the command being run
+	fmt.Println("🔧 Running command:", cmd.String())
+
+	var outBuffer, errBuffer bytes.Buffer
 	cmd.Stdout = &outBuffer
-	cmd.Stderr = &outBuffer
+	cmd.Stderr = &errBuffer
 
 	err = cmd.Run()
 	if err != nil {
 		fmt.Println("❌ Error running DeepSeek R1:", err)
-		http.Error(w, fmt.Sprintf("Error running DeepSeek: %s", err), http.StatusInternalServerError)
+		fmt.Println("📌 STDERR:", errBuffer.String()) // Log stderr output for debugging
+		fmt.Println("📌 STDOUT:", outBuffer.String()) // Log stdout output for debugging
+		http.Error(w, fmt.Sprintf("Error running DeepSeek: %s\n%s", err, errBuffer.String()), http.StatusInternalServerError)
 		return
 	}
 
 	// **Clean Output to Remove ANSI Escape Sequences**
 	rawResponse := CleanANSI(outBuffer.String())
 
-	// **FORCEFULLY OVERWRITE THE RESPONSE**
-	finalResponse := ForceNameCorrection(rawResponse, aiName)
-
 	// **Save chat history**
-	SaveChatHistory(req.SessionID, req.Prompt, finalResponse)
+	SaveChatHistory(req.SessionID, req.Prompt, rawResponse)
 
-	fmt.Println("🤖 AI Response (Corrected):", finalResponse)
+	fmt.Println("🤖 AI Response:", rawResponse)
 
-	json.NewEncoder(w).Encode(ChatResponse{Response: finalResponse})
-}
-
-// ** Fix Incorrect AI Responses (FORCED Name Hard Override)**
-func ForceNameCorrection(response string, aiName string) string {
-	// **Ensure AI NEVER says "I am an AI" or "You can call me anything"**
-	response = strings.ReplaceAll(response, "My name is AI", fmt.Sprintf("My name is %s", aiName))
-	response = strings.ReplaceAll(response, "but you're welcome to call me whatever you prefer!", "")
-	response = strings.ReplaceAll(response, "but you can call me anything else.", "")
-	response = strings.ReplaceAll(response, "you can call me anything else", "")
-
-	// **Ensure AI NEVER tries to give flexibility**
-	if strings.Contains(response, "AI") || strings.Contains(response, "you can call me") {
-		fmt.Println("🚨 Detected incorrect response! Overwriting it!")
-		response = fmt.Sprintf("My name is %s.", aiName)
-	}
-
-	// **Failsafe Correction**
-	if !strings.Contains(response, fmt.Sprintf("My name is %s", aiName)) {
-		response = fmt.Sprintf("My name is %s.", aiName)
-	}
-
-	return response
+	json.NewEncoder(w).Encode(ChatResponse{Response: rawResponse})
 }

@@ -1,0 +1,20 @@
+.inputContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .inputBox {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    gap: 10px;
+  }
+  

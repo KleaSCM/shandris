@@ -1,10 +1,16 @@
-import styles from '@/styles/page.module.scss';
+"use client";
+import InputBox from '@/components/InputBox';
+import OutputBox from '@/components/OutputBox';
+import { useState } from 'react';
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <p>hi</p>
-    </div>
+  const [response, setResponse] = useState('');
 
+  return (
+    <main>
+      <h1>Shandris</h1>
+      <InputBox />
+      <OutputBox output={response} />
+    </main>
   );
 }

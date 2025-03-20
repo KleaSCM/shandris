@@ -1,0 +1,21 @@
+.outputContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .outputBox {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background: #f1f1f1;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    gap: 10px;
+  }
+  

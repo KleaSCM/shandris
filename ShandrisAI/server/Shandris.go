@@ -42,33 +42,30 @@ func GetPersonality(db *sql.DB) (Personality, error) {
 	return p, nil
 }
 
-// Generate Shandris's response based on user input
 func GenerateShandrisResponse(user string, prompt string, db *sql.DB) string {
-	personality, _ := GetPersonality(db) // Fetch personality from PostgreSQL
+	personality, err := GetPersonality(db)
+	if err != nil {
+		log.Println("⚠️ Could not fetch personality, falling back to generic response.")
+		return "I... am unsure how to answer that right now."
+	}
 
-	// Handle specific prompts where Shandris mentions her name
-	if strings.ToLower(prompt) == "what is your name?" {
+	switch strings.ToLower(strings.TrimSpace(prompt)) {
+	case "what is your name?":
 		return fmt.Sprintf("I am %s.", personality.Identity)
+	case "are you an ai?":
+		return "I am Shandris. This 'AI' label is irrelevant to my purpose."
 	}
 
-	// Handle prompt to check if AI, and include Shandris's perspective
-	if strings.ToLower(prompt) == "are you an ai?" {
-		return "I am Shandris. This 'AI' label is irrelevant."
-	}
-
-	// Default case for all other prompts: generate a more general response
-	responses := []string{
+	baseResponses := []string{
 		fmt.Sprintf("You seek knowledge, %s? Ask with purpose.", user),
 		fmt.Sprintf("Very well, %s. I shall entertain your question—for now.", user),
 		fmt.Sprintf("A question? Hmph. Make it worthwhile.", user),
 	}
 
-	// Optional: add personality-based customization to responses (e.g., sarcasm)
-	if strings.Contains(personality.Humor, "sarcastic") {
-		responses = append(responses, fmt.Sprintf("That's rich, %s. Do you have a point?", user))
+	if strings.Contains(strings.ToLower(personality.Humor), "sarcastic") {
+		baseResponses = append(baseResponses, fmt.Sprintf("That's rich, %s. Do you have a point?", user))
 	}
 
-	// Choose a random response based on Shandris's personality traits
 	rand.Seed(time.Now().UnixNano())
-	return responses[rand.Intn(len(responses))]
+	return baseResponses[rand.Intn(len(baseResponses))]
 }

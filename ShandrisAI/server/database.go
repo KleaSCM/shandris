@@ -19,44 +19,73 @@ func InitDB() {
 		panic(err)
 	}
 
+	err = db.Ping()
+	if err != nil {
+		fmt.Println("❌ Database ping failed:", err)
+		panic(err)
+	}
+
 	fmt.Println("✅ Connected to PostgreSQL!")
 }
 
 // Fetch Shandris' name from the database
 func GetAIName() string {
 	var aiName string
-	err := db.QueryRow("SELECT value FROM system_memory WHERE key = 'ai_name'").Scan(&aiName)
+	err := db.QueryRow(`
+		SELECT value 
+		FROM system_memory 
+		WHERE key = 'ai_name' 
+		LIMIT 1
+	`).Scan(&aiName)
+
 	if err != nil {
 		fmt.Println("❌ Error fetching AI name:", err)
-		return "Shandris" // Default fallback if missing
+		return "Shandris" // fallback value
 	}
-	fmt.Println("🧠 AI Name from DB:", aiName) // Debug log
+
+	fmt.Println("🧠 AI Name from DB:", aiName)
 	return aiName
 }
 
-// Save chat history
-func SaveChatHistory(sessionID, userMessage, aiResponse string) {
-	_, err := db.Exec("INSERT INTO chat_history (session_id, user_message, ai_response) VALUES ($1, $2, $3)", sessionID, userMessage, aiResponse)
+// Save chat history to PostgreSQL
+func SaveChatHistory(sessionID, userMessage, aiResponse, topic string) {
+	_, err := db.Exec(`
+		INSERT INTO chat_history (session_id, user_message, ai_response, topic)
+		VALUES ($1, $2, $3, $4)
+	`, sessionID, userMessage, aiResponse, topic)
+
 	if err != nil {
 		fmt.Println("❌ Error saving chat history:", err)
 	}
 }
 
-// Retrieve chat history
-func GetChatHistory(sessionID string) ([]string, error) {
-	rows, err := db.Query("SELECT ai_response FROM chat_history WHERE session_id = $1 ORDER BY timestamp ASC", sessionID)
+// ChatTurn represents a single user/assistant exchange
+type ChatTurn struct {
+	UserMessage string
+	AIResponse  string
+}
+
+// Retrieve topic-specific chat history
+func GetChatHistoryByTopic(sessionID, topic string) ([]ChatTurn, error) {
+	rows, err := db.Query(`
+		SELECT user_message, ai_response 
+		FROM chat_history 
+		WHERE session_id = $1 AND topic = $2 
+		ORDER BY timestamp ASC
+	`, sessionID, topic)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var history []string
+	var history []ChatTurn
 	for rows.Next() {
-		var response string
-		if err := rows.Scan(&response); err != nil {
+		var turn ChatTurn
+		if err := rows.Scan(&turn.UserMessage, &turn.AIResponse); err != nil {
 			return nil, err
 		}
-		history = append(history, response)
+		history = append(history, turn)
 	}
+
 	return history, nil
 }

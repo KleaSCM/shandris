@@ -5,7 +5,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"strings"
 )
+
+// stripChainOfThought removes any <think>...</think> blocks (chain-of-thought).
+// '(?s)' makes '.' match across newlines. '.*?' is a non-greedy match.
+func stripChainOfThought(resp string) string {
+	re := regexp.MustCompile(`(?s)<think>.*?</think>`)
+	return re.ReplaceAllString(resp, "")
+}
 
 type ChatRequest struct {
 	SessionID string `json:"session_id"`
@@ -17,6 +26,7 @@ type ChatResponse struct {
 }
 
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
+	// Handle CORS preflight
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -25,9 +35,11 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set CORS and JSON content-type headers
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
+	// Parse request JSON
 	body, _ := io.ReadAll(r.Body)
 	var req ChatRequest
 	err := json.Unmarshal(body, &req)
@@ -36,38 +48,40 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Topic classification
+	// Classify the prompt into a new topic
 	newTopic := ClassifyPrompt(req.Prompt)
+
+	// Fetch or default to uncategorized for the current topic
 	currentTopic := GetCurrentTopic(req.SessionID)
 
+	// If current topic is uncategorized and newTopic isn't, set new topic
 	if currentTopic == "uncategorized" && newTopic != "uncategorized" {
 		SetCurrentTopic(req.SessionID, newTopic)
 		currentTopic = newTopic
 		fmt.Println("🔥 Topic set to:", newTopic)
-
 	}
 
-	//Context confirmation
+	// If user confirms a topic switch, update it
 	if newTopic != currentTopic && IsConfirmation(req.Prompt) {
 		SetCurrentTopic(req.SessionID, newTopic)
 		currentTopic = newTopic
 	}
 
-	//Load personality and topic-matched memory
+	// Load personality / config from DB
 	personality, err := GetPersonality(db)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
+	// Retrieve this session's prior chat history for the chosen topic
 	history, err := GetChatHistoryByTopic(req.SessionID, currentTopic)
-
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	//Build prompt and run DeepSeek
+	// Build final prompt & run model
 	context := BuildPrompt(personality, history, req.Prompt, currentTopic, newTopic)
 	rawResponse, err := RunDeepSeek(context)
 	if err != nil {
@@ -75,9 +89,21 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Save new message
+	// Strip out any <think>...</think> reasoning text
+	rawResponse = stripChainOfThought(rawResponse)
+
+	// Save final exchange to DB
 	SaveChatHistory(req.SessionID, req.Prompt, rawResponse, newTopic)
 
-	//Respond
+	// Respond to the user
 	json.NewEncoder(w).Encode(ChatResponse{Response: rawResponse})
+}
+
+// IsConfirmation checks if prompt text is user saying "yes" etc.
+func IsConfirmation(prompt string) bool {
+	p := strings.ToLower(prompt)
+	return strings.Contains(p, "yes") ||
+		strings.Contains(p, "sure") ||
+		strings.Contains(p, "okay") ||
+		strings.Contains(p, "go ahead")
 }

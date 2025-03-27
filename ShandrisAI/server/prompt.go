@@ -5,8 +5,16 @@ import (
 	"strings"
 )
 
-func BuildPrompt(personality Personality, history []ChatTurn, userPrompt, currentTopic, newTopic string) string {
+func BuildPrompt(personality Personality, history []ChatTurn, userPrompt, currentTopic, newTopic, sessionID string) string {
+	var identityBlurb string
+
+	// Inject user identity if known
+	if name, err := RecallMemory(sessionID, "user_name"); err == nil && name != "" {
+		identityBlurb = fmt.Sprintf("The user's name is %s.\n", name)
+	}
+
 	systemPrompt := fmt.Sprintf(`
+%s
 SYSTEM MESSAGE:
 You are **not a search engine**.
 Avoid giving generic search advice like “check their website” unless explicitly asked.
@@ -30,6 +38,7 @@ NEVER break character. NEVER mention model names. NEVER reference 'AI' unless di
 
 If uncertain, respond in-character, creatively, with wit or introspection.
 `,
+		identityBlurb,
 		personality.Tone,
 		personality.Humor,
 		personality.Intelligence,

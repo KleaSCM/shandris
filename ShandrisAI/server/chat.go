@@ -98,7 +98,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	context := BuildPrompt(personality, history, req.Prompt, currentTopic, newTopic)
+	context := BuildPrompt(personality, history, req.Prompt, currentTopic, newTopic, req.SessionID)
 	fullModelOutput, err := RunDeepSeek(context)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

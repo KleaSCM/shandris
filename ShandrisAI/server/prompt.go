@@ -9,6 +9,7 @@ func BuildPrompt(personality Personality, history []ChatTurn, userPrompt, curren
 
 	userName, _ := RecallMemory(sessionID, "user_name")
 	userBio, _ := RecallMemory(sessionID, "user_bio")
+	mood, _ := RecallMemory(sessionID, "mood")
 
 	var userFacts string
 	if userName != "" {
@@ -16,6 +17,9 @@ func BuildPrompt(personality Personality, history []ChatTurn, userPrompt, curren
 	}
 	if userBio != "" {
 		userFacts += fmt.Sprintf("User Background: %s\n", userBio)
+	}
+	if mood != "" {
+		userFacts += fmt.Sprintf("The user's current mood is: %s.\n", mood)
 	}
 
 	systemPrompt := userFacts + fmt.Sprintf(`

@@ -46,3 +46,19 @@ func SaveTraits(sessionID string, traits map[string]string) {
 		fmt.Println("❌ Error saving traits:", err)
 	}
 }
+
+// RecallTraits returns the full trait map for a session.
+func RecallTraits(sessionID string) (map[string]string, error) {
+	var blob []byte
+	traits := make(map[string]string)
+
+	err := db.QueryRow(`
+		SELECT traits FROM persona_memory WHERE session_id = $1
+	`, sessionID).Scan(&blob)
+	if err != nil {
+		return traits, err
+	}
+
+	err = json.Unmarshal(blob, &traits)
+	return traits, err
+}

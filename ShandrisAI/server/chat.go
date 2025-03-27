@@ -63,6 +63,13 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Attempt to extract mood and store it
+	mood := extractMood(req.Prompt)
+	if mood != "" {
+		SaveMemory(req.SessionID, "mood", mood)
+		fmt.Println("🧠 Saved user mood:", mood)
+	}
+
 	newTopic := ClassifyPrompt(req.Prompt)
 	currentTopic := GetCurrentTopic(req.SessionID)
 
@@ -129,4 +136,17 @@ func extractName(prompt string) string {
 	namePart := strings.TrimSpace(prompt[idx+len("my name is"):])
 	name := strings.Split(namePart, " ")[0]
 	return strings.Title(name)
+}
+func extractMood(prompt string) string {
+	prompt = strings.ToLower(prompt)
+
+	moods := []string{"happy", "sad", "angry", "tired", "excited", "grumpy", "anxious", "stressed", "curious", "bored"}
+	for _, mood := range moods {
+		if strings.Contains(prompt, "i'm feeling "+mood) ||
+			strings.Contains(prompt, "i feel "+mood) ||
+			strings.Contains(prompt, "i am "+mood) {
+			return mood
+		}
+	}
+	return ""
 }

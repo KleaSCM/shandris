@@ -15,3 +15,16 @@ func SaveMemory(sessionID, key, value string) {
 		fmt.Println("❌ Error saving memory:", err)
 	}
 }
+
+// RecallMemory retrieves a value for a key in a session's memory.
+func RecallMemory(sessionID, key string) (string, error) {
+	var value string
+	err := db.QueryRow(`
+		SELECT value FROM long_term_memory
+		WHERE session_id = $1 AND key = $2
+	`, sessionID, key).Scan(&value)
+	if err != nil {
+		return "", err
+	}
+	return value, nil
+}

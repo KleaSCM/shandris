@@ -71,6 +71,14 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		if detectMoodClear(req.Prompt) {
 			SaveMemory(req.SessionID, "mood", "")
 			fmt.Println("🧹 Cleared user mood.")
+			if detectMoodClear(req.Prompt) {
+				SaveMemory(req.SessionID, "mood", "")
+				fmt.Println("🧹 Cleared user mood.")
+				clearedResponse := "Got it. Mood deleted. I’ll stop pretending you’re grumpy, even if your typing says otherwise. 😏"
+				json.NewEncoder(w).Encode(ChatResponse{Response: clearedResponse})
+				return
+			}
+
 		}
 
 	}

@@ -68,6 +68,11 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	if mood != "" {
 		SaveMemory(req.SessionID, "mood", mood)
 		fmt.Println("🧠 Saved user mood:", mood)
+		if detectMoodClear(req.Prompt) {
+			SaveMemory(req.SessionID, "mood", "")
+			fmt.Println("🧹 Cleared user mood.")
+		}
+
 	}
 
 	newTopic := ClassifyPrompt(req.Prompt)

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -27,4 +28,21 @@ func RecallMemory(sessionID, key string) (string, error) {
 		return "", err
 	}
 	return value, nil
+}
+
+// SaveTraits stores the JSON traits blob for a session.
+func SaveTraits(sessionID string, traits map[string]string) {
+	blob, err := json.Marshal(traits)
+	if err != nil {
+		fmt.Println("❌ Error serializing traits:", err)
+		return
+	}
+	_, err = db.Exec(`
+		INSERT INTO persona_memory (session_id, traits)
+		VALUES ($1, $2)
+		ON CONFLICT (session_id) DO UPDATE SET traits = EXCLUDED.traits
+	`, sessionID, blob)
+	if err != nil {
+		fmt.Println("❌ Error saving traits:", err)
+	}
 }

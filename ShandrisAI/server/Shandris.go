@@ -59,7 +59,7 @@ func GenerateShandrisResponse(user string, prompt string, db *sql.DB) string {
 	baseResponses := []string{
 		fmt.Sprintf("You seek knowledge, %s? Ask with purpose.", user),
 		fmt.Sprintf("Very well, %s. I shall entertain your question—for now.", user),
-		fmt.Sprintf("A question? Hmph. Make it worthwhile.", user),
+		"A question? Hmph. Make it worthwhile.",
 	}
 
 	if strings.Contains(strings.ToLower(personality.Humor), "sarcastic") {

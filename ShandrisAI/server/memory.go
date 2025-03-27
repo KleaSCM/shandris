@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // SaveMemory stores a key-value pair for a session in long_term_memory.
@@ -61,4 +62,49 @@ func RecallTraits(sessionID string) (map[string]string, error) {
 
 	err = json.Unmarshal(blob, &traits)
 	return traits, err
+}
+
+// extractName attempts to parse "my name is X" from the prompt.
+func extractName(prompt string) string {
+	prompt = strings.ToLower(prompt)
+	idx := strings.Index(prompt, "my name is")
+	if idx == -1 {
+		return ""
+	}
+	namePart := strings.TrimSpace(prompt[idx+len("my name is"):])
+	name := strings.Split(namePart, " ")[0]
+	return strings.Title(name)
+}
+
+// extractMood parses mood expressions from a prompt.
+func extractMood(prompt string) string {
+	prompt = strings.ToLower(prompt)
+
+	moods := []string{
+		"happy", "sad", "angry", "tired", "excited",
+		"grumpy", "anxious", "stressed", "curious", "bored",
+	}
+
+	for _, mood := range moods {
+		if strings.Contains(prompt, "i'm feeling "+mood) ||
+			strings.Contains(prompt, "i feel "+mood) ||
+			strings.Contains(prompt, "i am "+mood) {
+			return mood
+		}
+	}
+	return ""
+}
+
+// detectMoodClear returns true if the user is trying to erase mood memory.
+func detectMoodClear(prompt string) bool {
+	prompt = strings.ToLower(prompt)
+	return strings.Contains(prompt, "forget my mood") ||
+		strings.Contains(prompt, "reset my mood") ||
+		strings.Contains(prompt, "ignore how i feel") ||
+		strings.Contains(prompt, "never mind my feelings") ||
+		strings.Contains(prompt, "i'm over it") ||
+		strings.Contains(prompt, "it doesn't matter how i feel") ||
+		strings.Contains(prompt, "change the subject") ||
+		strings.Contains(prompt, "move on from that") ||
+		strings.Contains(prompt, "stop talking about my mood")
 }

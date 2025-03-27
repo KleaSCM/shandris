@@ -150,3 +150,15 @@ func extractMood(prompt string) string {
 	}
 	return ""
 }
+func detectMoodClear(prompt string) bool {
+	prompt = strings.ToLower(prompt)
+	return strings.Contains(prompt, "forget my mood") ||
+		strings.Contains(prompt, "reset my mood") ||
+		strings.Contains(prompt, "ignore how i feel") ||
+		strings.Contains(prompt, "never mind my feelings") ||
+		strings.Contains(prompt, "i'm over it") ||
+		strings.Contains(prompt, "it doesn't matter how i feel") ||
+		strings.Contains(prompt, "change the subject") ||
+		strings.Contains(prompt, "move on from that") ||
+		strings.Contains(prompt, "stop talking about my mood")
+}

@@ -63,9 +63,18 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("🔥 Topic set to:", newTopic)
 	}
 
-	if newTopic != currentTopic && IsConfirmation(req.Prompt) {
-		SetCurrentTopic(req.SessionID, newTopic)
-		currentTopic = newTopic
+	if newTopic != currentTopic {
+		if IsConfirmation(req.Prompt) {
+			SetCurrentTopic(req.SessionID, newTopic)
+			currentTopic = newTopic
+		} else {
+			// User didn't confirm yet — send clarification prompt instead of calling model
+			suggestion := fmt.Sprintf("It seems like you're switching topics from **%s** to **%s**. Should I go ahead and switch?", currentTopic, newTopic)
+
+			// Sendsuggestion as the assistant's reply and skip model
+			json.NewEncoder(w).Encode(ChatResponse{Response: suggestion})
+			return
+		}
 	}
 
 	personality, err := GetPersonality(db)

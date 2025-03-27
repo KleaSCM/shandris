@@ -65,22 +65,20 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Attempt to extract mood and store it
 	mood := extractMood(req.Prompt)
+
+	// Check if user wants to clear the mood
+	if detectMoodClear(req.Prompt) {
+		SaveMemory(req.SessionID, "mood", "")
+		fmt.Println("🧹 Cleared user mood.")
+		clearedResponse := "Got it. Mood deleted. I’ll stop pretending you’re grumpy, even if your typing says otherwise. 😏"
+		json.NewEncoder(w).Encode(ChatResponse{Response: clearedResponse})
+		return
+	}
+
+	// If user expresses a new mood, save it
 	if mood != "" {
 		SaveMemory(req.SessionID, "mood", mood)
 		fmt.Println("🧠 Saved user mood:", mood)
-		if detectMoodClear(req.Prompt) {
-			SaveMemory(req.SessionID, "mood", "")
-			fmt.Println("🧹 Cleared user mood.")
-			if detectMoodClear(req.Prompt) {
-				SaveMemory(req.SessionID, "mood", "")
-				fmt.Println("🧹 Cleared user mood.")
-				clearedResponse := "Got it. Mood deleted. I’ll stop pretending you’re grumpy, even if your typing says otherwise. 😏"
-				json.NewEncoder(w).Encode(ChatResponse{Response: clearedResponse})
-				return
-			}
-
-		}
-
 	}
 
 	newTopic := ClassifyPrompt(req.Prompt)

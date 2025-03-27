@@ -54,6 +54,15 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Attempt to extract user name and store it
+	if strings.Contains(strings.ToLower(req.Prompt), "my name is") {
+		name := extractName(req.Prompt)
+		if name != "" {
+			SaveMemory(req.SessionID, "user_name", name)
+			fmt.Println("🧠 Saved user name:", name)
+		}
+	}
+
 	newTopic := ClassifyPrompt(req.Prompt)
 	currentTopic := GetCurrentTopic(req.SessionID)
 
@@ -109,4 +118,15 @@ func IsConfirmation(prompt string) bool {
 		strings.Contains(p, "sure") ||
 		strings.Contains(p, "okay") ||
 		strings.Contains(p, "go ahead")
+}
+
+func extractName(prompt string) string {
+	prompt = strings.ToLower(prompt)
+	idx := strings.Index(prompt, "my name is")
+	if idx == -1 {
+		return ""
+	}
+	namePart := strings.TrimSpace(prompt[idx+len("my name is"):])
+	name := strings.Split(namePart, " ")[0]
+	return strings.Title(name)
 }

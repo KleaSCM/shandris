@@ -25,6 +25,42 @@ func InitDB() {
 		panic(err)
 	}
 
+	// Create persona_profiles table if it doesn't exist
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS persona_profiles (
+			session_id TEXT PRIMARY KEY,
+			profile_data JSONB NOT NULL,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		fmt.Println("❌ Error creating persona_profiles table:", err)
+		panic(err)
+	}
+
+	// Create update trigger for persona_profiles
+	_, err = db.Exec(`
+		CREATE OR REPLACE FUNCTION update_updated_at_column()
+		RETURNS TRIGGER AS $$
+		BEGIN
+			NEW.updated_at = CURRENT_TIMESTAMP;
+			RETURN NEW;
+		END;
+		$$ language 'plpgsql';
+
+		DROP TRIGGER IF EXISTS update_persona_profiles_updated_at ON persona_profiles;
+		
+		CREATE TRIGGER update_persona_profiles_updated_at
+			BEFORE UPDATE ON persona_profiles
+			FOR EACH ROW
+			EXECUTE FUNCTION update_updated_at_column();
+	`)
+	if err != nil {
+		fmt.Println("❌ Error creating update trigger:", err)
+		panic(err)
+	}
+
 	fmt.Println("✅ Connected to PostgreSQL!")
 }
 

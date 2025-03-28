@@ -1,12 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChatButton from "./ChatButton";
 import styles from "@/styles/inputBox.module.scss";
 
 export default function InputBox({ setResponse }: { setResponse: (text: string) => void }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState("");
+
+  useEffect(() => {
+    // Generate a unique session ID when the component mounts
+    const generateSessionId = () => {
+      const storedSessionId = localStorage.getItem("shandris_session_id");
+      if (storedSessionId) {
+        setSessionId(storedSessionId);
+      } else {
+        const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem("shandris_session_id", newSessionId);
+        setSessionId(newSessionId);
+      }
+    };
+    generateSessionId();
+  }, []);
 
   const handleCopy = () => navigator.clipboard.writeText(input);
   const handlePaste = async () => setInput(await navigator.clipboard.readText());
@@ -20,7 +36,10 @@ export default function InputBox({ setResponse }: { setResponse: (text: string) 
       const res = await fetch("http://localhost:8080/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: input }),
+        body: JSON.stringify({ 
+          prompt: input,
+          session_id: sessionId 
+        }),
       });
 
       const data = await res.json();

@@ -66,32 +66,6 @@ func (md *MemoryDecay) CalculateDecayFactor(event *MemoryEvent) float64 {
 	return math.Exp(-float64(age) / float64(md.halfLife))
 }
 
-// MemoryRecall handles memory retrieval and relevance scoring
-type MemoryRecall struct {
-	contextMapper  *ContextMapper
-	emotionMatcher *EmotionMatcher
-	patternMatcher *PatternMatcher
-}
-
-// newMemoryRecall creates a new memory recall instance
-func newMemoryRecall() *MemoryRecall {
-	return &MemoryRecall{
-		contextMapper: &ContextMapper{
-			topicWeights: make(map[string]float64),
-			moodWeights:  make(map[string]float64),
-			timeWeights:  make(map[string]float64),
-		},
-		emotionMatcher: &EmotionMatcher{
-			emotionPatterns:    make(map[string][]float64),
-			resonanceThreshold: 0.5,
-		},
-		patternMatcher: &PatternMatcher{
-			patterns:     make(map[string]*RecallPattern),
-			associations: make(map[string][]string),
-		},
-	}
-}
-
 // TimelineMemory manages the AI's long-term memory and event tracking
 type TimelineMemory struct {
 	events        map[string]*MemoryEvent
@@ -315,4 +289,23 @@ func (tm *TimelineMemory) isSignificantInteraction(interaction *Interaction) boo
 func (tm *TimelineMemory) createEventFromInteraction(interaction *Interaction, userID string) *MemoryEvent {
 	// Implementation for creating events from interactions
 	return nil
+}
+
+// newMemoryRecall creates a new memory recall instance
+func newMemoryRecall() *MemoryRecall {
+	return &MemoryRecall{
+		contextMapper: &ContextMapper{
+			topicWeights: make(map[string]float64),
+			moodWeights:  make(map[string]float64),
+			timeWeights:  make(map[string]float64),
+		},
+		emotionMatcher: &EmotionMatcher{
+			emotionPatterns:    make(map[string][]float64),
+			resonanceThreshold: 0.5,
+		},
+		patternMatcher: &PatternMatcher{
+			patterns:     make(map[string]*RecallPattern),
+			associations: make(map[string][]string),
+		},
+	}
 }

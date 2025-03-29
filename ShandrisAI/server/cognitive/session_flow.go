@@ -142,6 +142,23 @@ func (cc *ContextCarrier) CopyContext(context *SessionContext) *SessionContext {
 	}
 }
 
+// Update types for different cognitive systems
+type MoodUpdate struct {
+	NewState *MoodState
+}
+
+type PersonaUpdate struct {
+	ActivePersona string
+}
+
+type TopicUpdate struct {
+	ActiveTopics []string
+}
+
+type TimelineUpdate struct {
+	FocusPoints []string
+}
+
 // SystemUpdates contains updates from all cognitive systems
 type SystemUpdates struct {
 	MoodUpdates     *MoodUpdate

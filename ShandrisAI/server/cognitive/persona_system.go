@@ -316,6 +316,16 @@ func (ps *PersonaSystem) UpdateContext(update *PersonaContext) {
 	ps.context.Restrictions = update.Restrictions
 }
 
+// ProcessInteraction processes an interaction and updates the persona context
+func (ps *PersonaSystem) ProcessInteraction(interaction *Interaction, context *PersonaContext) *PersonaUpdate {
+	if ps.activePersona == nil {
+		return nil
+	}
+	return &PersonaUpdate{
+		ActivePersona: ps.activePersona.ID,
+	}
+}
+
 // ApplyTransition records a transition between personas
 func (tm *TransitionManager) ApplyTransition(fromID, toID string) {
 	// Record cooldown

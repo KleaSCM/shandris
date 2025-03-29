@@ -432,6 +432,20 @@ func (pa *PatternAnalysisEngine) calculateEmotionalResonance() float64 {
 	return totalIntensity / float64(count)
 }
 
+func (pa *PatternAnalysisEngine) analyzeEmotionalResonance(resonance float64) PatternResult {
+	// Find matching emotional pattern
+	for _, pattern := range pa.patterns {
+		if pattern.Type == EmotionalPattern {
+			return PatternResult{
+				Pattern:    &pattern,
+				Confidence: resonance, // Use calculated resonance as confidence
+				Context:    &pa.contextHistory[len(pa.contextHistory)-1],
+			}
+		}
+	}
+	return PatternResult{}
+}
+
 // Add more sophisticated mood patterns
 func initializeAdvancedMoodPatterns() map[string]MoodPattern {
 	return map[string]MoodPattern{

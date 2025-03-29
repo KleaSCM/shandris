@@ -242,6 +242,33 @@ func (ps *PersonaSystem) SwitchPersona(targetPersonaID string, reason string) er
 	return nil
 }
 
+// matchesCondition checks if a condition matches the current context
+func (ps *PersonaSystem) matchesCondition(condition string, context *PersonaContext) bool {
+	switch condition {
+	case "feminine_presence":
+		return ps.context.CurrentMood == "flirty" || ps.context.CurrentMood == "romantic"
+	case "romantic_context":
+		return ps.context.CurrentMood == "romantic"
+	case "technical_discussion":
+		return ps.context.CurrentMood == "focused" || ps.context.CurrentMood == "analytical"
+	default:
+		return false
+	}
+}
+
+// validateConstraints checks if all constraints are satisfied
+func (ps *PersonaSystem) validateConstraints(constraints []string) bool {
+	for _, constraint := range constraints {
+		// Check if constraint is in restrictions
+		for _, restriction := range ps.context.Restrictions {
+			if constraint == restriction {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // GetResponseStyle determines the appropriate response style for the current context
 func (ps *PersonaSystem) GetResponseStyle(context *PersonaContext) PersonaStyleRule {
 	if ps.activePersona == nil {
@@ -287,4 +314,18 @@ func (ps *PersonaSystem) UpdateContext(update *PersonaContext) {
 
 	// Update restrictions
 	ps.context.Restrictions = update.Restrictions
+}
+
+// ApplyTransition records a transition between personas
+func (tm *TransitionManager) ApplyTransition(fromID, toID string) {
+	// Record cooldown
+	tm.cooldowns[toID] = time.Now()
+
+	// Initialize transition map if needed
+	if _, exists := tm.transitions[fromID]; !exists {
+		tm.transitions[fromID] = make(map[string]float64)
+	}
+
+	// Update transition probability
+	tm.transitions[fromID][toID] += 0.1
 }

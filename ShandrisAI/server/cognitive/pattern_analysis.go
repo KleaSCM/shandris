@@ -356,6 +356,82 @@ func (pa *PatternAnalysisEngine) detectMoodTransitions() []MoodTransition {
 	return transitions
 }
 
+func (pa *PatternAnalysisEngine) analyzeMoodTransition(transition MoodTransition) PatternResult {
+	// Find matching emotional pattern
+	for _, pattern := range pa.patterns {
+		if pattern.Type == EmotionalPattern {
+			return PatternResult{
+				Pattern:    &pattern,
+				Confidence: 0.7, // Default confidence for mood transitions
+				Context:    &pa.contextHistory[len(pa.contextHistory)-1],
+			}
+		}
+	}
+	return PatternResult{}
+}
+
+type EmotionalTrigger struct {
+	Type      string
+	Intensity float64
+	Timestamp time.Time
+}
+
+func (pa *PatternAnalysisEngine) detectEmotionalTriggers() []EmotionalTrigger {
+	var triggers []EmotionalTrigger
+	if len(pa.contextHistory) == 0 {
+		return triggers
+	}
+
+	currentContext := pa.contextHistory[len(pa.contextHistory)-1]
+	for _, interaction := range currentContext.Interactions {
+		if interaction.Type == "emotion" {
+			triggers = append(triggers, EmotionalTrigger{
+				Type:      interaction.Type,
+				Intensity: interaction.Intensity,
+				Timestamp: interaction.Timestamp,
+			})
+		}
+	}
+	return triggers
+}
+
+func (pa *PatternAnalysisEngine) analyzeEmotionalTrigger(trigger EmotionalTrigger) PatternResult {
+	// Find matching emotional pattern
+	for _, pattern := range pa.patterns {
+		if pattern.Type == EmotionalPattern {
+			return PatternResult{
+				Pattern:    &pattern,
+				Confidence: trigger.Intensity, // Use trigger intensity as confidence
+				Context:    &pa.contextHistory[len(pa.contextHistory)-1],
+			}
+		}
+	}
+	return PatternResult{}
+}
+
+func (pa *PatternAnalysisEngine) calculateEmotionalResonance() float64 {
+	if len(pa.contextHistory) == 0 {
+		return 0.0
+	}
+
+	// Calculate average emotional intensity from recent interactions
+	currentContext := pa.contextHistory[len(pa.contextHistory)-1]
+	var totalIntensity float64
+	var count int
+
+	for _, interaction := range currentContext.Interactions {
+		if interaction.Type == "emotion" {
+			totalIntensity += interaction.Intensity
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0.0
+	}
+	return totalIntensity / float64(count)
+}
+
 // Add more sophisticated mood patterns
 func initializeAdvancedMoodPatterns() map[string]MoodPattern {
 	return map[string]MoodPattern{

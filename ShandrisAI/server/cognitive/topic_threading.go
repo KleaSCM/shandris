@@ -192,7 +192,7 @@ func (tm *TopicManager) updateThread(thread *TopicThread, topic string, context 
 	// Update emotional context
 	if context != nil {
 		thread.Context = context
-		currentNode.Attributes["mood"] = context.PrimaryMood
+		currentNode.Attributes["mood"] = context.PrimaryEmotion
 		currentNode.Attributes["intensity"] = fmt.Sprintf("%.2f", context.Intensity)
 	}
 

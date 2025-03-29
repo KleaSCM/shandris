@@ -29,6 +29,119 @@ func (sh *SessionHistory) GetRecentSession(userID string) *Session {
 	return nil
 }
 
+// StateManager handles session state management
+type StateManager struct {
+	states map[string]*SessionState
+}
+
+func newStateManager() *StateManager {
+	return &StateManager{
+		states: make(map[string]*SessionState),
+	}
+}
+
+func (sm *StateManager) InitializeState(userID string) *SessionState {
+	return &SessionState{
+		UserContext:   make(map[string]interface{}),
+		StateFlags:    make(map[string]bool),
+		CurrentTopics: make([]string, 0),
+		MemoryFocus:   make([]string, 0),
+	}
+}
+
+func (sm *StateManager) CopyState(state *SessionState) *SessionState {
+	if state == nil {
+		return nil
+	}
+	copy := &SessionState{
+		MoodState:     state.MoodState,
+		ActivePersona: state.ActivePersona,
+		CurrentTopics: append([]string{}, state.CurrentTopics...),
+		MemoryFocus:   append([]string{}, state.MemoryFocus...),
+		UserContext:   make(map[string]interface{}),
+		StateFlags:    make(map[string]bool),
+	}
+	for k, v := range state.UserContext {
+		copy.UserContext[k] = v
+	}
+	for k, v := range state.StateFlags {
+		copy.StateFlags[k] = v
+	}
+	return copy
+}
+
+func (sm *StateManager) MergeState(previous *SessionState, newContext map[string]interface{}) *SessionState {
+	state := sm.InitializeState("")
+	if previous != nil {
+		state = sm.CopyState(previous)
+	}
+	for k, v := range newContext {
+		state.UserContext[k] = v
+	}
+	return state
+}
+
+// TopicContext manages conversation topic tracking and relevance
+type TopicContext struct {
+	CurrentTopics map[string]float64  // Maps topic to relevance score
+	TopicHistory  []string            // Recent topics in order
+	Associations  map[string][]string // Topic to related topics mapping
+}
+
+// MemoryContext manages memory and timeline tracking
+type MemoryContext struct {
+	RecentEvents    []string               // List of recent event IDs
+	EventDetails    map[string]interface{} // Event details by ID
+	TimelineMarkers map[string]time.Time   // Timeline markers and their timestamps
+	Importance      map[string]float64     // Event importance scores
+}
+
+// ContextCarrier manages session context transfer and updates
+type ContextCarrier struct {
+	contexts map[string]*SessionContext
+}
+
+func newContextCarrier() *ContextCarrier {
+	return &ContextCarrier{
+		contexts: make(map[string]*SessionContext),
+	}
+}
+
+func (cc *ContextCarrier) CreateContext(initialContext map[string]interface{}) *SessionContext {
+	return &SessionContext{
+		EmotionalContext: &EmotionalContext{},
+		TopicContext:     &TopicContext{},
+		PersonaContext:   &PersonaContext{},
+		MemoryContext:    &MemoryContext{},
+		Relationships:    make(map[string]float64),
+	}
+}
+
+func (cc *ContextCarrier) CarryContext(previous *SessionContext, newContext map[string]interface{}) *SessionContext {
+	context := cc.CreateContext(newContext)
+	if previous != nil {
+		context.EmotionalContext = previous.EmotionalContext
+		context.TopicContext = previous.TopicContext
+		context.PersonaContext = previous.PersonaContext
+		context.MemoryContext = previous.MemoryContext
+		context.Relationships = previous.Relationships
+	}
+	return context
+}
+
+func (cc *ContextCarrier) CopyContext(context *SessionContext) *SessionContext {
+	if context == nil {
+		return nil
+	}
+	return &SessionContext{
+		EmotionalContext: context.EmotionalContext,
+		TopicContext:     context.TopicContext,
+		PersonaContext:   context.PersonaContext,
+		MemoryContext:    context.MemoryContext,
+		Relationships:    context.Relationships,
+	}
+}
+
 // SessionFlowManager coordinates all cognitive systems across sessions
 type SessionFlowManager struct {
 	activeSession  *Session
@@ -188,6 +301,20 @@ type SystemIntegration struct {
 	timelineMemory *TimelineMemory
 }
 
+func newSystemIntegration(
+	moodEngine *MoodEngine,
+	personaSystem *PersonaSystem,
+	topicMemory *TopicMemory,
+	timelineMemory *TimelineMemory,
+) *SystemIntegration {
+	return &SystemIntegration{
+		moodEngine:     moodEngine,
+		personaSystem:  personaSystem,
+		topicMemory:    topicMemory,
+		timelineMemory: timelineMemory,
+	}
+}
+
 func (si *SystemIntegration) ProcessInteraction(
 	interaction *Interaction,
 	state *SessionState,
@@ -219,6 +346,14 @@ type ContinuityManager struct {
 	topicContinuity     *TopicContinuity
 	emotionalContinuity *EmotionalContinuity
 	memoryContinuity    *MemoryContinuity
+}
+
+func newContinuityManager() *ContinuityManager {
+	return &ContinuityManager{
+		topicContinuity:     &TopicContinuity{relevanceScores: make(map[string]float64)},
+		emotionalContinuity: &EmotionalContinuity{emotionalTone: make(map[string]float64)},
+		memoryContinuity:    &MemoryContinuity{relevantEvents: make(map[string]float64)},
+	}
 }
 
 type TopicContinuity struct {

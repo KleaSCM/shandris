@@ -50,3 +50,23 @@ func (ta *TopicAnalyzer) analyzeUserReactions(topic *TopicData) []PatternMatch {
 	// Implementation for user reaction analysis
 	return nil
 }
+
+func (ta *TopicAnalyzer) AnalyzeTopics(history []ContextSnapshot) []AnalysisPattern {
+	var patterns []AnalysisPattern
+	if len(history) == 0 {
+		return patterns
+	}
+
+	// Convert pattern rules to analysis patterns
+	for _, rules := range ta.patterns {
+		for _, rule := range rules {
+			patterns = append(patterns, AnalysisPattern{
+				ID:         rule.Pattern,
+				Type:       TopicalPattern,
+				Weight:     rule.Weight,
+				Conditions: make([]PatternCondition, 0),
+			})
+		}
+	}
+	return patterns
+}

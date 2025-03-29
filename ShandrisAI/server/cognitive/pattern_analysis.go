@@ -5,25 +5,6 @@ import (
 	"time"
 )
 
-type TopicAnalyzer struct {
-	patterns map[string]AnalysisPattern
-}
-
-func (ta *TopicAnalyzer) AnalyzeTopics(history []ContextSnapshot) []AnalysisPattern {
-	var patterns []AnalysisPattern
-	if len(history) == 0 {
-		return patterns
-	}
-
-	// Return all topical patterns
-	for _, pattern := range ta.patterns {
-		if pattern.Type == TopicalPattern {
-			patterns = append(patterns, pattern)
-		}
-	}
-	return patterns
-}
-
 // PatternAnalysisEngine handles sophisticated pattern detection
 type PatternAnalysisEngine struct {
 	topicAnalyzer  *TopicAnalyzer

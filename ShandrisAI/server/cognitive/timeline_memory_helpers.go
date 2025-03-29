@@ -223,7 +223,7 @@ func calculateEmotionalResonance(event *MemoryEvent, context *EventContext) floa
 
 	// Check topic relevance
 	for _, topic := range context.Topics {
-		if contains(event.Tags, topic) {
+		if containsString(event.Tags, topic) {
 			resonance += 0.2
 		}
 	}
@@ -231,7 +231,7 @@ func calculateEmotionalResonance(event *MemoryEvent, context *EventContext) floa
 	return resonance
 }
 
-func contains(slice []string, str string) bool {
+func containsString(slice []string, str string) bool {
 	for _, s := range slice {
 		if s == str {
 			return true

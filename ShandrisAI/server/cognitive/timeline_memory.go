@@ -50,6 +50,22 @@ func (ic *ImportanceCalculator) CalculateImportance(event *MemoryEvent) float64 
 	return math.Min(1.0, importance)
 }
 
+// MemoryDecay handles memory decay over time
+type MemoryDecay struct {
+	halfLife time.Duration
+}
+
+func newMemoryDecay() *MemoryDecay {
+	return &MemoryDecay{
+		halfLife: 30 * 24 * time.Hour, // 30 days half-life
+	}
+}
+
+func (md *MemoryDecay) CalculateDecayFactor(event *MemoryEvent) float64 {
+	age := time.Since(event.Timestamp)
+	return math.Exp(-float64(age) / float64(md.halfLife))
+}
+
 // TimelineMemory manages the AI's long-term memory and event tracking
 type TimelineMemory struct {
 	events        map[string]*MemoryEvent

@@ -49,7 +49,7 @@ type Persona struct {
 	Type        PersonaType
 	Traits      map[string]float64
 	MoodBias    map[string]float64
-	StyleRules  []StyleRule
+	StyleRules  []PersonaStyleRule
 	Preferences map[string]interface{}
 	Constraints []Constraint
 	Active      bool
@@ -66,7 +66,7 @@ const (
 	SapphicTeaser  PersonaType = "sapphic_teaser"
 )
 
-type StyleRule struct {
+type PersonaStyleRule struct {
 	Condition   string
 	Response    string
 	Tone        string
@@ -136,7 +136,7 @@ func (ps *PersonaSystem) initializeDefaultPersonas() {
 			"playful":  0.2,
 			"romantic": 0.2,
 		},
-		StyleRules: []StyleRule{
+		StyleRules: []PersonaStyleRule{
 			{
 				Condition: "feminine_presence",
 				Response:  "flirty",
@@ -177,7 +177,7 @@ func (ps *PersonaSystem) initializeDefaultPersonas() {
 			"excited":    0.2,
 			"analytical": 0.2,
 		},
-		StyleRules: []StyleRule{
+		StyleRules: []PersonaStyleRule{
 			{
 				Condition: "technical_discussion",
 				Response:  "detailed",
@@ -226,12 +226,12 @@ func (ps *PersonaSystem) SwitchPersona(targetPersonaID string, reason string) er
 }
 
 // GetResponseStyle determines the appropriate response style for the current context
-func (ps *PersonaSystem) GetResponseStyle(context *PersonaContext) StyleRule {
+func (ps *PersonaSystem) GetResponseStyle(context *PersonaContext) PersonaStyleRule {
 	if ps.activePersona == nil {
-		return StyleRule{} // Default style
+		return PersonaStyleRule{} // Default style
 	}
 
-	var bestRule StyleRule
+	var bestRule PersonaStyleRule
 	bestPriority := -1
 
 	for _, rule := range ps.activePersona.StyleRules {

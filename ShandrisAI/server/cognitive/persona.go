@@ -4,21 +4,21 @@ import "time"
 
 // PersonaManager handles different personality modes
 type PersonaManager struct {
-	CurrentPersona Persona
-	Available      map[string]Persona
+	CurrentPersona BasePersona
+	Available      map[string]BasePersona
 	Transitions    []PersonaTransition
 }
 
-type Persona struct {
+type BasePersona struct {
 	ID         string             `json:"id"`
 	Name       string             `json:"name"`
 	Traits     map[string]float64 `json:"traits"`    // base personality traits
 	MoodBias   map[string]float64 `json:"mood_bias"` // mood tendencies
-	StyleRules []StyleRule        `json:"style_rules"`
+	StyleRules []BaseStyleRule    `json:"style_rules"`
 	Active     bool               `json:"active"`
 }
 
-type StyleRule struct {
+type BaseStyleRule struct {
 	Trigger    string   `json:"trigger"`
 	Response   string   `json:"response"`
 	Conditions []string `json:"conditions"`

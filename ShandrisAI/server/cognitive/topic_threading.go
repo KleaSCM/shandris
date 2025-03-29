@@ -338,3 +338,26 @@ func initializeDomainRules() map[string]DomainRule {
 		// Add more domains as needed
 	}
 }
+
+func (tm *TopicManager) initializeTransitionRules() {
+	tm.TransitionRules = []TransitionRule{
+		{
+			FromDomain: "tech",
+			ToDomain:   "science",
+			Weight:     0.8,
+			MinContext: 0.6,
+		},
+		{
+			FromDomain: "sapphic",
+			ToDomain:   "gaming",
+			Weight:     0.6,
+			MinContext: 0.5,
+		},
+		{
+			FromDomain: "gaming",
+			ToDomain:   "tech",
+			Weight:     0.6,
+			MinContext: 0.5,
+		},
+	}
+}

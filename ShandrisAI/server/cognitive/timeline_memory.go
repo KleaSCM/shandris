@@ -254,8 +254,18 @@ func (tm *TimelineMemory) UpdateRelationship(userID string, interaction *Interac
 // Helper functions
 
 func (tm *TimelineMemory) createMarkerFromEvent(event *MemoryEvent) *TimelineMarker {
-	// Implementation for creating markers from significant events
-	return nil
+	// Only create markers for significant events
+	if event.Importance < 0.8 {
+		return nil
+	}
+
+	return &TimelineMarker{
+		ID:          uuid.New().String(),
+		Type:        Milestone,
+		Description: event.Content,
+		Timestamp:   event.Timestamp,
+		Importance:  event.Importance,
+	}
 }
 
 func (tm *TimelineMemory) updateRelationships(event *MemoryEvent) {

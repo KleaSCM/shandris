@@ -285,6 +285,16 @@ func (tm *TopicManager) archiveThread(thread *TopicThread) {
 	// This will be implemented when we add persistence
 }
 
+// getDomain returns the domain for a given topic
+func (tm *TopicManager) getDomain(topic string) string {
+	for domain := range tm.DomainRules {
+		if domain == topic {
+			return domain
+		}
+	}
+	return ""
+}
+
 // TopicDetection represents a detected topic with confidence
 type TopicDetection struct {
 	Domain     string

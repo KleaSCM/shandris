@@ -357,12 +357,17 @@ func (pa *PatternAnalysisEngine) detectMoodTransitions() []MoodTransition {
 }
 
 func (pa *PatternAnalysisEngine) analyzeMoodTransition(transition MoodTransition) PatternResult {
-	// Find matching emotional pattern
+	// Find matching emotional pattern based on transition
 	for _, pattern := range pa.patterns {
 		if pattern.Type == EmotionalPattern {
+			// Calculate confidence based on transition
+			confidence := 0.7 // Base confidence
+			if transition.From == transition.To {
+				confidence *= 0.8 // Lower confidence for same mood transitions
+			}
 			return PatternResult{
 				Pattern:    &pattern,
-				Confidence: 0.7, // Default confidence for mood transitions
+				Confidence: confidence,
 				Context:    &pa.contextHistory[len(pa.contextHistory)-1],
 			}
 		}
@@ -446,59 +451,6 @@ func (pa *PatternAnalysisEngine) analyzeEmotionalResonance(resonance float64) Pa
 	return PatternResult{}
 }
 
-// Add more sophisticated mood patterns
-func initializeAdvancedMoodPatterns() map[string]MoodPattern {
-	return map[string]MoodPattern{
-		"sapphic_flirty": {
-			Keywords: []string{
-				"cute", "pretty", "beautiful", "gorgeous", "attractive",
-				"flirt", "tease", "wink", "blush", "smile",
-				"gay", "lesbian", "sapphic", "wlw", "queer",
-			},
-			Sentiment:    0.8,
-			MoodShift:    "flirty",
-			Intensity:    0.7,
-			Decay:        0.1,
-			Requirements: []string{"feminine_presence", "romantic_context"},
-			Exclusions:   []string{"professional_context", "serious_discussion"},
-		},
-		"tech_passionate": {
-			Keywords: []string{
-				"code", "programming", "algorithm", "development", "software",
-				"excited", "fascinating", "amazing", "innovative", "elegant",
-			},
-			Sentiment:    0.6,
-			MoodShift:    "enthusiastic",
-			Intensity:    0.6,
-			Decay:        0.15,
-			Requirements: []string{"technical_context"},
-		},
-		"protective_caring": {
-			Keywords: []string{
-				"protect", "care", "support", "help", "comfort",
-				"safe", "secure", "gentle", "kind", "warm",
-			},
-			Sentiment:    0.7,
-			MoodShift:    "nurturing",
-			Intensity:    0.5,
-			Decay:        0.08,
-			Requirements: []string{"emotional_context", "support_needed"},
-		},
-		"playful_teasing": {
-			Keywords: []string{
-				"tease", "joke", "play", "laugh", "giggle",
-				"silly", "fun", "witty", "clever", "sassy",
-			},
-			Sentiment:    0.75,
-			MoodShift:    "playful",
-			Intensity:    0.6,
-			Decay:        0.12,
-			Requirements: []string{"comfortable_context", "positive_rapport"},
-		},
-		// Add more sophisticated patterns...
-	}
-}
-
 // Enhanced persistence features
 type TopicPersistenceEnhanced struct {
 	*TopicPersistence
@@ -572,6 +524,27 @@ func (tpe *TopicPersistenceEnhanced) GetRelatedTopics(topic string, minStrength 
 	}
 
 	return related
+}
+
+func (tpe *TopicPersistenceEnhanced) UpdateContextCache(context ContextSnapshot) {
+	if tpe.contextCache == nil {
+		tpe.contextCache = &ContextCache{
+			recent:     make([]ContextSnapshot, 0),
+			indexed:    make(map[string][]int),
+			maxSize:    1000,
+			timeWindow: 24 * time.Hour,
+		}
+	}
+
+	// Add to recent contexts
+	tpe.contextCache.recent = append(tpe.contextCache.recent, context)
+	if len(tpe.contextCache.recent) > tpe.contextCache.maxSize {
+		tpe.contextCache.recent = tpe.contextCache.recent[1:]
+	}
+
+	// Index by timestamp
+	timestamp := context.Timestamp.Format(time.RFC3339)
+	tpe.contextCache.indexed[timestamp] = append(tpe.contextCache.indexed[timestamp], len(tpe.contextCache.recent)-1)
 }
 
 // SQL schema for enhanced persistence

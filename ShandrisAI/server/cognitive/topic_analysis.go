@@ -42,8 +42,22 @@ type PatternMatch struct {
 }
 
 func (ta *TopicAnalyzer) analyzeMoodPatterns(topic *TopicData) []PatternMatch {
-	// Implementation for mood pattern analysis
-	return nil
+	var matches []PatternMatch
+
+	// Analyze mood patterns based on topic data
+	if len(topic.MoodPatterns) > 0 {
+		matches = append(matches, PatternMatch{
+			Type:       "mood_pattern_detected",
+			Confidence: float64(len(topic.MoodPatterns)) / 10,
+			Metadata: map[string]interface{}{
+				"topic":    topic.ID,
+				"domain":   topic.Domain,
+				"patterns": topic.MoodPatterns,
+			},
+		})
+	}
+
+	return matches
 }
 
 func (ta *TopicAnalyzer) analyzeUserReactions(topic *TopicData) []PatternMatch {

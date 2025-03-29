@@ -51,7 +51,7 @@ type MoodModifier struct {
 }
 
 // Initialize advanced mood patterns
-func initializeAdvancedMoodPatternsExtended() map[string]AdvancedMoodPattern {
+func InitializeAdvancedMoodPatternsExtended() map[string]AdvancedMoodPattern {
 	return map[string]AdvancedMoodPattern{
 		"sapphic_romantic": {
 			Base: MoodPattern{

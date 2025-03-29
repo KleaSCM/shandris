@@ -15,7 +15,7 @@ type DomainContext struct {
 }
 
 // Initialize domain rules with validators
-func initializeCognitiveDomainRules() map[string]DomainRule {
+func InitializeCognitiveDomainRules() map[string]DomainRule {
 	return map[string]DomainRule{
 		"tech": {
 			Domain: "tech",
@@ -74,6 +74,23 @@ func initializeCognitiveDomainRules() map[string]DomainRule {
 				"social":   0.8,
 				"personal": 0.9,
 				"support":  1.0,
+			},
+		},
+		"sapphic": {
+			Domain: "sapphic",
+			Keywords: []string{
+				"romantic", "intimate", "tender", "gentle", "soft",
+				"loving", "affectionate", "warm", "close", "sweet",
+			},
+			Validators: []func(string) bool{
+				containsSapphicContext,
+				isRomanticContext,
+			},
+			Priority: 4,
+			Transitions: map[string]float64{
+				"emotional": 0.9,
+				"social":    0.8,
+				"personal":  0.9,
 			},
 		},
 		// Add more domains as needed

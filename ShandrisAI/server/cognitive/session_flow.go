@@ -394,6 +394,12 @@ func newContinuityManager() *ContinuityManager {
 	}
 }
 
+type TopicTransition struct {
+	FromTopic string
+	ToTopic   string
+	Timestamp time.Time
+}
+
 type TopicContinuity struct {
 	activeTopics    []string
 	topicHistory    []TopicTransition
@@ -450,6 +456,13 @@ func (sfm *SessionFlowManager) createCheckpoint() {
 }
 
 func (sfm *SessionFlowManager) shouldCreateCheckpoint(updates *SystemUpdates) bool {
-	// Implement checkpoint creation logic based on significance of updates
-	return false
+	if updates == nil {
+		return false
+	}
+
+	// Create checkpoint if any significant updates occurred
+	return updates.MoodUpdates != nil ||
+		updates.PersonaUpdates != nil ||
+		updates.TopicUpdates != nil ||
+		updates.TimelineUpdates != nil
 }

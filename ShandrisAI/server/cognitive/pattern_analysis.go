@@ -282,6 +282,53 @@ func (pa *PatternAnalysisEngine) calculatePatternConfidence(pattern *AnalysisPat
 	return confidence
 }
 
+func (pa *PatternAnalysisEngine) extractPatternContext(sequence []Interaction) *ContextSnapshot {
+	if len(pa.contextHistory) == 0 {
+		return nil
+	}
+
+	// Find the context containing the sequence's timestamp
+	for _, context := range pa.contextHistory {
+		if len(context.Interactions) > 0 {
+			firstInteraction := context.Interactions[0]
+			if firstInteraction.Timestamp.Equal(sequence[0].Timestamp) {
+				return &context
+			}
+		}
+	}
+	return &pa.contextHistory[len(pa.contextHistory)-1]
+}
+
+func (pa *PatternAnalysisEngine) detectTimingPatterns() []time.Duration {
+	var patterns []time.Duration
+	if len(pa.contextHistory) < 2 {
+		return patterns
+	}
+
+	// Calculate time gaps between consecutive contexts
+	for i := 1; i < len(pa.contextHistory); i++ {
+		gap := pa.contextHistory[i].Timestamp.Sub(pa.contextHistory[i-1].Timestamp)
+		patterns = append(patterns, gap)
+	}
+	return patterns
+}
+
+func (pa *PatternAnalysisEngine) analyzeTiming(gap time.Duration) PatternResult {
+	// Find matching timing pattern
+	for _, pattern := range pa.patterns {
+		if pattern.Type == BehavioralPattern && pattern.MaxGap > 0 {
+			if gap <= pattern.MaxGap {
+				return PatternResult{
+					Pattern:    &pattern,
+					Confidence: 0.8, // Default confidence for timing patterns
+					Context:    &pa.contextHistory[len(pa.contextHistory)-1],
+				}
+			}
+		}
+	}
+	return PatternResult{}
+}
+
 // Add more sophisticated mood patterns
 func initializeAdvancedMoodPatterns() map[string]MoodPattern {
 	return map[string]MoodPattern{

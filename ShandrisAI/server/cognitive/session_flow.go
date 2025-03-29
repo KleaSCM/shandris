@@ -323,6 +323,11 @@ func (si *SystemIntegration) ActivateSystems(session *Session) {
 	session.ActiveSystems["timeline"] = true
 }
 
+// RestoreSystems restores system states from a previous session
+func (si *SystemIntegration) RestoreSystems(session, previousSession *Session) {
+	session.ActiveSystems = previousSession.ActiveSystems
+}
+
 func (si *SystemIntegration) ProcessInteraction(
 	interaction *Interaction,
 	state *SessionState,

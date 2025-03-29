@@ -65,12 +65,26 @@ func (rca *RelationshipContextAnalyzer) analyzeEmotionalImpact(context *Interact
 }
 
 func (rca *RelationshipContextAnalyzer) analyzeUserImpact(context *InteractionContext) float64 {
-	// Placeholder implementation
-	return 0.5
+	if context == nil || len(context.UserContext) == 0 {
+		return 0.5
+	}
+
+	var totalImpact float64
+	for _, value := range context.UserContext {
+		totalImpact += value
+	}
+	return totalImpact / float64(len(context.UserContext))
 }
 
 func (rca *RelationshipContextAnalyzer) analyzeDomainImpact(context *InteractionContext) float64 {
-	// Placeholder implementation
+	if context == nil || context.Domain == "" {
+		return 0.5
+	}
+
+	// Calculate impact based on domain weights
+	if weight, exists := rca.domainWeights[context.Domain]; exists {
+		return weight
+	}
 	return 0.5
 }
 
@@ -402,20 +416,20 @@ func (trm *TopicRelationshipManager) updateRelationshipContext(
 	context *InteractionContext,
 	impact *ContextImpact,
 ) {
-	// Update emotional tone
+	// Update emotional tone with impact influence
 	for emotion, value := range context.EmotionalTone {
 		current := rel.Context.EmotionalTone[emotion]
-		rel.Context.EmotionalTone[emotion] = (current*0.7 + value*0.3) // Weighted average
+		rel.Context.EmotionalTone[emotion] = (current*0.7 + value*0.3) * (1 + impact.EmotionalImpact)
 	}
 
-	// Update user context
+	// Update user context with impact influence
 	for ctx, value := range context.UserContext {
-		rel.Context.UserContext[ctx] = value
+		rel.Context.UserContext[ctx] = value * (1 + impact.UserImpact)
 	}
 
 	// Update frequency and significance
 	rel.Context.Frequency++
-	rel.Context.Significance = calculateSignificance(rel.Context)
+	rel.Context.Significance = calculateSignificance(rel.Context) * (1 + impact.DomainImpact)
 
 	// Update shared traits
 	rel.Context.SharedTraits = updateSharedTraits(rel.Context.SharedTraits, context.Traits)

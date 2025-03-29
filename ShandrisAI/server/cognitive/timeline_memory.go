@@ -285,9 +285,11 @@ func (tm *TimelineMemory) updateRelationshipMetrics(rel *RelationshipMemory, int
 		Emotions:  make(map[string]float64),
 	}
 
-	// Update trust based on interaction
+	// Update trust and intimacy based on interaction
 	trustImpact := calculateTrustImpact(event)
+	intimacyImpact := calculateIntimacyImpact(event)
 	rel.Trust = math.Max(0, math.Min(1, rel.Trust+trustImpact))
+	rel.Intimacy = math.Max(0, math.Min(1, rel.Intimacy+intimacyImpact))
 
 	// Update last interaction time
 	rel.LastInteraction = interaction.Timestamp

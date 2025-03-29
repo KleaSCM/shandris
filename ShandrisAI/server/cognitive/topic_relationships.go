@@ -170,6 +170,24 @@ type RelationshipEvent struct {
 	Context   map[string]interface{}
 }
 
+func initializeRelationshipPatterns() map[string]*RelationshipPattern {
+	patterns := make(map[string]*RelationshipPattern)
+	// Initialize with default patterns
+	patterns["default"] = &RelationshipPattern{
+		Type:       Direct,
+		Triggers:   []string{},
+		Conditions: make(map[string]float64),
+		Evolution: &EvolutionRule{
+			GrowthRate:   0.1,
+			DecayRate:    0.05,
+			Threshold:    0.3,
+			Dependencies: []string{},
+		},
+		Strength: 0.5,
+	}
+	return patterns
+}
+
 func NewTopicRelationshipManager() *TopicRelationshipManager {
 	return &TopicRelationshipManager{
 		relationships:   make(map[string]*TopicRelationship),

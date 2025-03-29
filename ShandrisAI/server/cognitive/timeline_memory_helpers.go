@@ -1,7 +1,6 @@
 package cognitive
 
 import (
-	"sort"
 	"time"
 )
 
@@ -12,22 +11,6 @@ type ScoredMemory struct {
 	Relevance float64
 	Recency   float64
 	Emotion   float64
-}
-
-// getTopMemories selects the most relevant memories
-func (tm *TimelineMemory) getTopMemories(scored []*ScoredMemory, limit int) []*MemoryEvent {
-	// Sort by score
-	sort.Slice(scored, func(i, j int) bool {
-		return scored[i].Score > scored[j].Score
-	})
-
-	// Select top memories
-	result := make([]*MemoryEvent, 0, limit)
-	for i := 0; i < limit && i < len(scored); i++ {
-		result = append(result, scored[i].Event)
-	}
-
-	return result
 }
 
 // Helper functions for relationship updates

@@ -2,6 +2,8 @@ package cognitive
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // TopicMoodIntegrator handles the interaction between topics and emotional states
@@ -140,10 +142,15 @@ func (tmi *TopicMoodIntegrator) updateTopicWithMood(domain string, context *Inte
 	// Update topic context with current mood state
 	if context.TopicContext == nil {
 		context.TopicContext = &TopicThread{
-			Domain: domain,
+			ID:          uuid.New().String(),
+			ActiveNodes: []string{domain},
+			MainTopic:   domain,
+			StartTime:   time.Now(),
+			LastActive:  time.Now(),
+			Depth:       1,
 		}
 	}
-	context.TopicContext.LastMoodUpdate = time.Now()
+	context.TopicContext.LastActive = time.Now()
 }
 
 func (tmi *TopicMoodIntegrator) checkContextRequirement(req string, context *EmotionalContext) bool {

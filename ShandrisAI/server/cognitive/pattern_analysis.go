@@ -1,6 +1,7 @@
 package cognitive
 
 import (
+	"sort"
 	"time"
 )
 
@@ -172,6 +173,40 @@ func (pa *PatternAnalysisEngine) analyzeContextualPatterns() []PatternResult {
 		}
 	}
 	return results
+}
+
+func (pa *PatternAnalysisEngine) analyzeHybridPatterns() []PatternResult {
+	var results []PatternResult
+	// Analyze patterns that combine multiple pattern types
+	if len(pa.contextHistory) > 0 {
+		currentContext := pa.contextHistory[len(pa.contextHistory)-1]
+		for _, pattern := range pa.patterns {
+			if pattern.Type == HybridPattern {
+				results = append(results, PatternResult{
+					Pattern:    &pattern,
+					Confidence: 0.75, // Default confidence for hybrid patterns
+					Context:    &currentContext,
+				})
+			}
+		}
+	}
+	return results
+}
+
+func (pa *PatternAnalysisEngine) filterAndRankPatterns(results []PatternResult) []PatternResult {
+	// Sort results by confidence
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Confidence > results[j].Confidence
+	})
+
+	// Filter out low confidence results
+	filtered := make([]PatternResult, 0)
+	for _, result := range results {
+		if result.Confidence >= 0.5 { // Minimum confidence threshold
+			filtered = append(filtered, result)
+		}
+	}
+	return filtered
 }
 
 // Add more sophisticated mood patterns

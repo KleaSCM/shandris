@@ -209,6 +209,32 @@ func (pa *PatternAnalysisEngine) filterAndRankPatterns(results []PatternResult) 
 	return filtered
 }
 
+func (pa *PatternAnalysisEngine) detectInteractionSequences() [][]Interaction {
+	var sequences [][]Interaction
+	if len(pa.contextHistory) == 0 {
+		return sequences
+	}
+
+	currentContext := pa.contextHistory[len(pa.contextHistory)-1]
+	if len(currentContext.Interactions) == 0 {
+		return sequences
+	}
+
+	// Group interactions by type and time proximity
+	currentSeq := []Interaction{currentContext.Interactions[0]}
+	for i := 1; i < len(currentContext.Interactions); i++ {
+		interaction := currentContext.Interactions[i]
+		if interaction.Timestamp.Sub(currentSeq[len(currentSeq)-1].Timestamp) <= time.Minute {
+			currentSeq = append(currentSeq, interaction)
+		} else {
+			sequences = append(sequences, currentSeq)
+			currentSeq = []Interaction{interaction}
+		}
+	}
+	sequences = append(sequences, currentSeq)
+	return sequences
+}
+
 // Add more sophisticated mood patterns
 func initializeAdvancedMoodPatterns() map[string]MoodPattern {
 	return map[string]MoodPattern{

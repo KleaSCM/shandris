@@ -105,6 +105,12 @@ func (re *RelationshipEvolution) EvolveRelationship(rel *TopicRelationship) {
 	rel.Strength = rel.Strength * (1 + re.growthRate)
 }
 
+type RelationshipFilters struct {
+	Type                RelationType
+	MinStrength         float64
+	ContextRequirements map[string]float64
+}
+
 // TopicRelationshipManager handles sophisticated topic relationships
 type TopicRelationshipManager struct {
 	relationships   map[string]*TopicRelationship

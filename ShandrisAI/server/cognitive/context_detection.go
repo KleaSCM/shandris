@@ -100,6 +100,14 @@ func (cd *ContextDetector) determineContexts(input string, analysis ContextAnaly
 		contexts = append(contexts, "romantic")
 	}
 
+	// Analyze input text for additional contexts
+	if strings.Contains(strings.ToLower(input), "help") || strings.Contains(strings.ToLower(input), "support") {
+		contexts = append(contexts, "supportive")
+	}
+	if strings.Contains(strings.ToLower(input), "learn") || strings.Contains(strings.ToLower(input), "teach") {
+		contexts = append(contexts, "educational")
+	}
+
 	// Ensure at least one context
 	if len(contexts) == 0 {
 		contexts = append(contexts, "casual")
@@ -150,6 +158,11 @@ func (cd *ContextDetector) calculateContextIntensity(input string, analysis Cont
 		baseIntensity += 0.3
 	}
 
+	// Adjust for text intensity markers
+	if strings.Contains(strings.ToLower(input), "very") || strings.Contains(strings.ToLower(input), "really") {
+		baseIntensity += 0.15
+	}
+
 	// Ensure intensity is between 0 and 1
 	return math.Max(0, math.Min(1, baseIntensity))
 }
@@ -170,6 +183,12 @@ func (cd *ContextDetector) validateFlirtingContext(input string, userState map[s
 	if cd.detectProfessionalContext(input) {
 		return false
 	}
+
+	// Check user state for flirting preferences
+	if flirtingEnabled, ok := userState["flirting_enabled"].(bool); ok && !flirtingEnabled {
+		return false
+	}
+
 	return cd.detectFeminineContext(input)
 }
 

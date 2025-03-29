@@ -61,8 +61,21 @@ func (ta *TopicAnalyzer) analyzeMoodPatterns(topic *TopicData) []PatternMatch {
 }
 
 func (ta *TopicAnalyzer) analyzeUserReactions(topic *TopicData) []PatternMatch {
-	// Implementation for user reaction analysis
-	return nil
+	var matches []PatternMatch
+
+	// Analyze user reactions based on topic data
+	if len(topic.UserReactions) > 0 {
+		matches = append(matches, PatternMatch{
+			Type:       "user_reaction_detected",
+			Confidence: float64(len(topic.UserReactions)) / 10,
+			Metadata: map[string]interface{}{
+				"topic":     topic.ID,
+				"reactions": topic.UserReactions,
+			},
+		})
+	}
+
+	return matches
 }
 
 func (ta *TopicAnalyzer) AnalyzeTopics(history []ContextSnapshot) []AnalysisPattern {

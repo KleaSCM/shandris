@@ -168,7 +168,16 @@ func (m *MoodEngineImpl) selectDominantMood(scores map[string]float64, context E
 	highestScore := -1.0
 	dominantMood := "neutral"
 
+	// Adjust scores based on context
 	for mood, score := range scores {
+		// Boost score if it matches user's mood
+		if mood == context.UserMood {
+			score *= 1.2
+		}
+		// Reduce score if it conflicts with current emotional tone
+		if mood == "flirty" && !context.SapphicContext.AllowsFlirting {
+			score *= 0.5
+		}
 		if score > highestScore {
 			highestScore = score
 			dominantMood = mood
@@ -222,22 +231,70 @@ func containsKeyword(keywords []string, target string) bool {
 }
 
 func extractKeywords(context map[string]any) []string {
-	// Implementation depends on your context structure
-	return []string{}
+	keywords := make([]string, 0)
+
+	// Extract keywords from context map
+	if text, ok := context["text"].(string); ok {
+		keywords = append(keywords, strings.Fields(strings.ToLower(text))...)
+	}
+	if topics, ok := context["topics"].([]string); ok {
+		keywords = append(keywords, topics...)
+	}
+
+	return keywords
 }
 
 func calculateSentiment(context map[string]any) float64 {
-	// Implementation depends on your sentiment analysis needs
-	return 0.0
+	sentiment := 0.0
+
+	// Extract sentiment from context
+	if val, ok := context["sentiment"].(float64); ok {
+		sentiment = val
+	}
+	if text, ok := context["text"].(string); ok {
+		// Basic sentiment analysis based on text content
+		if strings.Contains(strings.ToLower(text), "love") || strings.Contains(strings.ToLower(text), "happy") {
+			sentiment += 0.3
+		}
+		if strings.Contains(strings.ToLower(text), "hate") || strings.Contains(strings.ToLower(text), "sad") {
+			sentiment -= 0.3
+		}
+	}
+
+	return math.Max(-1.0, math.Min(1.0, sentiment))
 }
 
 func calculateIntensity(context map[string]any) float64 {
-	// Implementation depends on your intensity calculation needs
-	return 0.0
+	intensity := 0.5 // Base intensity
+
+	// Extract intensity from context
+	if val, ok := context["intensity"].(float64); ok {
+		intensity = val
+	}
+	if text, ok := context["text"].(string); ok {
+		// Adjust intensity based on text content
+		if strings.Contains(strings.ToLower(text), "very") || strings.Contains(strings.ToLower(text), "really") {
+			intensity += 0.2
+		}
+	}
+
+	return math.Min(1.0, intensity)
 }
 
 func extractUserMood(context map[string]any) string {
-	// Implementation depends on your user mood detection
+	// Extract user mood from context
+	if mood, ok := context["user_mood"].(string); ok {
+		return mood
+	}
+	if text, ok := context["text"].(string); ok {
+		// Basic mood detection from text
+		if strings.Contains(strings.ToLower(text), "happy") || strings.Contains(strings.ToLower(text), "excited") {
+			return "happy"
+		}
+		if strings.Contains(strings.ToLower(text), "sad") || strings.Contains(strings.ToLower(text), "angry") {
+			return "negative"
+		}
+	}
 	return "neutral"
 }
 

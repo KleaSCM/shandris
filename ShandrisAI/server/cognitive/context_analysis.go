@@ -195,6 +195,13 @@ func (ca *ContextAnalyzer) extractKeywords(input string) []string {
 func (ca *ContextAnalyzer) calculateIntensity(input string, themes map[string]float64) float64 {
 	// Implementation for intensity calculation
 	baseIntensity := 0.5
+
+	// Adjust intensity based on text content
+	if strings.Contains(strings.ToLower(input), "very") || strings.Contains(strings.ToLower(input), "really") {
+		baseIntensity += 0.2
+	}
+
+	// Add theme-based intensity
 	for _, score := range themes {
 		baseIntensity += score * 0.1
 	}

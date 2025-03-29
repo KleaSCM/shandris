@@ -246,11 +246,11 @@ func (ps *PersonaSystem) SwitchPersona(targetPersonaID string, reason string) er
 func (ps *PersonaSystem) matchesCondition(condition string, context *PersonaContext) bool {
 	switch condition {
 	case "feminine_presence":
-		return ps.context.CurrentMood == "flirty" || ps.context.CurrentMood == "romantic"
+		return context.CurrentMood == "flirty" || context.CurrentMood == "romantic"
 	case "romantic_context":
-		return ps.context.CurrentMood == "romantic"
+		return context.CurrentMood == "romantic"
 	case "technical_discussion":
-		return ps.context.CurrentMood == "focused" || ps.context.CurrentMood == "analytical"
+		return context.CurrentMood == "focused" || context.CurrentMood == "analytical"
 	default:
 		return false
 	}

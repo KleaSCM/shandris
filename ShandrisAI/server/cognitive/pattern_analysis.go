@@ -345,10 +345,10 @@ func (pa *PatternAnalysisEngine) detectMoodTransitions() []MoodTransition {
 	for i := 1; i < len(pa.contextHistory); i++ {
 		prevMood := pa.contextHistory[i-1].Mood
 		currMood := pa.contextHistory[i].Mood
-		if prevMood != nil && currMood != nil && prevMood.State != currMood.State {
+		if prevMood != nil && currMood != nil && prevMood.Primary != currMood.Primary {
 			transitions = append(transitions, MoodTransition{
-				From:      prevMood.State,
-				To:        currMood.State,
+				From:      prevMood.Primary,
+				To:        currMood.Primary,
 				Timestamp: pa.contextHistory[i].Timestamp,
 			})
 		}

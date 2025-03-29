@@ -278,7 +278,19 @@ func (tm *TimelineMemory) isUpcomingAnniversary(marker *TimelineMarker, current 
 }
 
 func (tm *TimelineMemory) updateRelationshipMetrics(rel *RelationshipMemory, interaction *Interaction) {
-	// Implementation for updating relationship metrics
+	// Create memory event from interaction
+	event := &MemoryEvent{
+		Type:      RelationshipInteractionEvent,
+		Timestamp: interaction.Timestamp,
+		Emotions:  make(map[string]float64),
+	}
+
+	// Update trust based on interaction
+	trustImpact := calculateTrustImpact(event)
+	rel.Trust = math.Max(0, math.Min(1, rel.Trust+trustImpact))
+
+	// Update last interaction time
+	rel.LastInteraction = interaction.Timestamp
 }
 
 func (tm *TimelineMemory) isSignificantInteraction(interaction *Interaction) bool {

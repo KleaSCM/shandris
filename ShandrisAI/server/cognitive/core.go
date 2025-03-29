@@ -20,6 +20,11 @@ type MoodEngine struct {
 	Modifiers    map[string]float64
 }
 
+// GetCurrentMood returns the current mood state
+func (m *MoodEngine) GetCurrentMood() MoodState {
+	return m.CurrentState
+}
+
 // ProcessInteraction processes an interaction and updates the emotional context
 func (m *MoodEngine) ProcessInteraction(interaction *Interaction, context *EmotionalContext) *MoodUpdate {
 	return &MoodUpdate{

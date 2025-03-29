@@ -58,7 +58,7 @@ func (tmi *TopicMoodIntegrator) ProcessTopicMoodInteraction(input string, curren
 
 	// Create integrated context
 	integrated := &IntegratedContext{
-		EmotionalState: currentMood,
+		EmotionalState: &currentMood,
 		LastUpdate:     time.Now(),
 	}
 

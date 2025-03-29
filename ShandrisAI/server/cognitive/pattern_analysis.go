@@ -235,6 +235,37 @@ func (pa *PatternAnalysisEngine) detectInteractionSequences() [][]Interaction {
 	return sequences
 }
 
+func (pa *PatternAnalysisEngine) matchBehavioralPattern(sequence []Interaction) *AnalysisPattern {
+	for _, pattern := range pa.patterns {
+		if pattern.Type != BehavioralPattern {
+			continue
+		}
+
+		// Check if sequence matches pattern conditions
+		matches := 0
+		for _, condition := range pattern.Conditions {
+			if pa.checkCondition(sequence, condition) {
+				matches++
+			}
+		}
+
+		if matches >= pattern.MinMatches {
+			return &pattern
+		}
+	}
+	return nil
+}
+
+func (pa *PatternAnalysisEngine) checkCondition(sequence []Interaction, condition PatternCondition) bool {
+	// Basic condition checking implementation
+	for _, interaction := range sequence {
+		if interaction.Type == condition.Field {
+			return true
+		}
+	}
+	return false
+}
+
 // Add more sophisticated mood patterns
 func initializeAdvancedMoodPatterns() map[string]MoodPattern {
 	return map[string]MoodPattern{

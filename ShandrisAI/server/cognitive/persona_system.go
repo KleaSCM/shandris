@@ -18,6 +18,21 @@ func newTransitionManager() *TransitionManager {
 	}
 }
 
+// TraitManager handles personality trait management
+type TraitManager struct {
+	traits    map[string]float64
+	patterns  map[string][]string
+	cooldowns map[string]time.Time
+}
+
+func newTraitManager() *TraitManager {
+	return &TraitManager{
+		traits:    make(map[string]float64),
+		patterns:  make(map[string][]string),
+		cooldowns: make(map[string]time.Time),
+	}
+}
+
 // PersonaSystem manages different personality modes
 type PersonaSystem struct {
 	personas      map[string]*Persona

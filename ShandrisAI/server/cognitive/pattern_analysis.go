@@ -266,6 +266,22 @@ func (pa *PatternAnalysisEngine) checkCondition(sequence []Interaction, conditio
 	return false
 }
 
+func (pa *PatternAnalysisEngine) calculatePatternConfidence(pattern *AnalysisPattern, sequence []Interaction) float64 {
+	matches := 0
+	for _, condition := range pattern.Conditions {
+		if pa.checkCondition(sequence, condition) {
+			matches++
+		}
+	}
+
+	// Calculate confidence based on matches and pattern weight
+	confidence := float64(matches) / float64(len(pattern.Conditions)) * pattern.Weight
+	if confidence > 1.0 {
+		confidence = 1.0
+	}
+	return confidence
+}
+
 // Add more sophisticated mood patterns
 func initializeAdvancedMoodPatterns() map[string]MoodPattern {
 	return map[string]MoodPattern{

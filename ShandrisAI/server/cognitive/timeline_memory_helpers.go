@@ -1,11 +1,8 @@
 package cognitive
 
 import (
-	"math"
 	"sort"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // ScoredMemory represents a memory with its recall score
@@ -15,105 +12,6 @@ type ScoredMemory struct {
 	Relevance float64
 	Recency   float64
 	Emotion   float64
-}
-
-// createMarkerFromEvent creates timeline markers from significant events
-func (tm *TimelineMemory) createMarkerFromEvent(event *MemoryEvent) *TimelineMarker {
-	// Check event significance
-	if event.Importance < 0.7 {
-		return nil
-	}
-
-	marker := &TimelineMarker{
-		ID:          uuid.New().String(),
-		Description: event.Content,
-		Timestamp:   event.Timestamp,
-		Importance:  event.Importance,
-	}
-
-	// Determine marker type based on event
-	switch {
-	case isRelationshipMilestone(event):
-		marker.Type = Milestone
-		marker.Recurrence = &RecurrencePattern{
-			Interval: 365 * 24 * time.Hour, // Yearly
-			Pattern:  "yearly",
-		}
-	case isRecurringEvent(event):
-		marker.Type = Recurring
-		marker.Recurrence = determineRecurrencePattern(event)
-	case isSignificantAchievement(event):
-		marker.Type = Milestone
-	default:
-		marker.Type = Reminder
-	}
-
-	return marker
-}
-
-// updateRelationships updates relationship data based on events
-func (tm *TimelineMemory) updateRelationships(event *MemoryEvent) {
-	for _, participantID := range event.Context.Participants {
-		rel, exists := tm.relationships[participantID]
-		if !exists {
-			rel = &RelationshipMemory{
-				UserID:      participantID,
-				Events:      make([]string, 0),
-				Milestones:  make([]string, 0),
-				Preferences: make(map[string]float64),
-			}
-			tm.relationships[participantID] = rel
-		}
-
-		// Update relationship metrics
-		rel.Events = append(rel.Events, event.ID)
-		rel.LastInteraction = event.Timestamp
-
-		// Update trust and intimacy based on event type
-		trustDelta := calculateTrustImpact(event)
-		intimacyDelta := calculateIntimacyImpact(event)
-
-		rel.Trust = math.Min(1.0, math.Max(0.0, rel.Trust+trustDelta))
-		rel.Intimacy = math.Min(1.0, math.Max(0.0, rel.Intimacy+intimacyDelta))
-
-		// Update shared topics
-		rel.SharedTopics = updateSharedTopics(rel.SharedTopics, event.Context.Topics)
-
-		// Update preferences
-		updatePreferences(rel.Preferences, event)
-	}
-}
-
-// scoreMemories scores memories based on relevance and decay
-func (tm *TimelineMemory) scoreMemories(memories []*MemoryEvent, context *EventContext) []*ScoredMemory {
-	var scored []*ScoredMemory
-	now := time.Now()
-
-	for _, memory := range memories {
-		score := &ScoredMemory{
-			Event: memory,
-		}
-
-		// Calculate base relevance
-		score.Relevance = calculateRelevance(memory, context)
-
-		// Calculate recency factor (exponential decay)
-		timeDiff := now.Sub(memory.Timestamp).Hours()
-		score.Recency = math.Exp(-timeDiff / (30 * 24)) // 30-day half-life
-
-		// Calculate emotional impact
-		score.Emotion = calculateEmotionalResonance(memory, context)
-
-		// Combine factors with weights
-		score.Score = (score.Relevance * 0.4) +
-			(score.Recency * 0.3) +
-			(score.Emotion * 0.3) +
-			(memory.Importance * 0.2)
-
-		scored = append(scored, score)
-	}
-
-	return scored
 }
 
 // getTopMemories selects the most relevant memories

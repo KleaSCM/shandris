@@ -85,7 +85,7 @@ func (tmi *TopicMoodIntegrator) applyTopicMoodPattern(ic *IntegratedContext, pat
 
 	// Apply mood modifiers
 	for mood, modifier := range pattern.MoodModifiers {
-		if ic.EmotionalState.PrimaryMood == mood {
+		if ic.EmotionalState.Primary == mood {
 			ic.Intensity *= modifier
 		}
 	}

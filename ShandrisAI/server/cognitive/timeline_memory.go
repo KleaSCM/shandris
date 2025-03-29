@@ -1,10 +1,54 @@
 package cognitive
 
 import (
+	"math"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+// ImportanceCalculator handles calculation of event importance
+type ImportanceCalculator struct {
+	weights map[string]float64
+}
+
+func newImportanceCalculator() *ImportanceCalculator {
+	return &ImportanceCalculator{
+		weights: map[string]float64{
+			"emotional":    0.4,
+			"personal":     0.3,
+			"relationship": 0.2,
+			"achievement":  0.1,
+		},
+	}
+}
+
+func (ic *ImportanceCalculator) CalculateImportance(event *MemoryEvent) float64 {
+	importance := 0.0
+
+	// Base importance from event type
+	if weight, exists := ic.weights[string(event.Type)]; exists {
+		importance += weight
+	}
+
+	// Emotional intensity factor
+	if len(event.Emotions) > 0 {
+		maxEmotion := 0.0
+		for _, intensity := range event.Emotions {
+			if intensity > maxEmotion {
+				maxEmotion = intensity
+			}
+		}
+		importance *= (1 + maxEmotion)
+	}
+
+	// Recency factor (newer events are more important)
+	age := time.Since(event.Timestamp).Hours()
+	recencyFactor := math.Exp(-age / (24 * 7)) // 7-day half-life
+	importance *= (0.7 + 0.3*recencyFactor)
+
+	return math.Min(1.0, importance)
+}
 
 // TimelineMemory manages the AI's long-term memory and event tracking
 type TimelineMemory struct {

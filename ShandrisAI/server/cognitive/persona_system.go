@@ -190,6 +190,23 @@ func (ps *PersonaSystem) initializeDefaultPersonas() {
 	// Add more personas...
 }
 
+// canTransition checks if a transition to the target persona is allowed
+func (ps *PersonaSystem) canTransition(targetPersonaID string) bool {
+	// Check if target persona exists
+	if _, exists := ps.personas[targetPersonaID]; !exists {
+		return false
+	}
+
+	// Check cooldown period
+	if lastTransition, exists := ps.transitions.cooldowns[targetPersonaID]; exists {
+		if time.Since(lastTransition) < 5*time.Minute {
+			return false
+		}
+	}
+
+	return true
+}
+
 // SwitchPersona handles persona transitions
 func (ps *PersonaSystem) SwitchPersona(targetPersonaID string, reason string) error {
 	if !ps.canTransition(targetPersonaID) {

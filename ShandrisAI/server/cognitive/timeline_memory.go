@@ -109,12 +109,12 @@ type MemoryEvent struct {
 type EventType string
 
 const (
-	PersonalEvent     EventType = "personal"
-	RelationshipEvent EventType = "relationship"
-	ConversationEvent EventType = "conversation"
-	EmotionalEvent    EventType = "emotional"
-	AchievementEvent  EventType = "achievement"
-	CustomEvent       EventType = "custom"
+	PersonalEvent                EventType = "personal"
+	RelationshipInteractionEvent EventType = "relationship"
+	ConversationEvent            EventType = "conversation"
+	EmotionalEvent               EventType = "emotional"
+	AchievementEvent             EventType = "achievement"
+	CustomEvent                  EventType = "custom"
 )
 
 type EventContext struct {

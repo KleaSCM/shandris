@@ -188,6 +188,15 @@ func initializeRelationshipPatterns() map[string]*RelationshipPattern {
 	return patterns
 }
 
+func isRelationshipBidirectional(relType RelationType) bool {
+	switch relType {
+	case Associative, Semantic, Emotional:
+		return true
+	default:
+		return false
+	}
+}
+
 func NewTopicRelationshipManager() *TopicRelationshipManager {
 	return &TopicRelationshipManager{
 		relationships:   make(map[string]*TopicRelationship),

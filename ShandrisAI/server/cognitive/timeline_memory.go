@@ -1,6 +1,7 @@
 package cognitive
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"time"
@@ -317,8 +318,21 @@ func (tm *TimelineMemory) getTopMemories(scored []*ScoredMemory, limit int) []*M
 }
 
 func (tm *TimelineMemory) isUpcomingAnniversary(marker *TimelineMarker, current time.Time) bool {
-	// Implementation for checking anniversary timing
-	return false
+	if marker.Type != Anniversary {
+		return false
+	}
+
+	// Check if anniversary is within next 7 days
+	anniversaryDate := marker.Timestamp
+	nextAnniversary := time.Date(current.Year(), anniversaryDate.Month(), anniversaryDate.Day(), 0, 0, 0, 0, current.Location())
+
+	// If anniversary has passed this year, check next year
+	if nextAnniversary.Before(current) {
+		nextAnniversary = time.Date(current.Year()+1, anniversaryDate.Month(), anniversaryDate.Day(), 0, 0, 0, 0, current.Location())
+	}
+
+	daysUntilAnniversary := nextAnniversary.Sub(current).Hours() / 24
+	return daysUntilAnniversary <= 7 && daysUntilAnniversary >= 0
 }
 
 func (tm *TimelineMemory) updateRelationshipMetrics(rel *RelationshipMemory, interaction *Interaction) {
@@ -340,13 +354,36 @@ func (tm *TimelineMemory) updateRelationshipMetrics(rel *RelationshipMemory, int
 }
 
 func (tm *TimelineMemory) isSignificantInteraction(interaction *Interaction) bool {
-	// Implementation for determining interaction significance
-	return false
+	// Check for high intensity interactions
+	if interaction.Intensity > 0.8 {
+		return true
+	}
+
+	// Check for significant interaction types
+	significantTypes := map[string]bool{
+		"emotional":    true,
+		"milestone":    true,
+		"achievement":  true,
+		"relationship": true,
+	}
+
+	return significantTypes[interaction.Type]
 }
 
 func (tm *TimelineMemory) createEventFromInteraction(interaction *Interaction, userID string) *MemoryEvent {
-	// Implementation for creating events from interactions
-	return nil
+	return &MemoryEvent{
+		ID:        uuid.New().String(),
+		Type:      EventType(interaction.Type),
+		Content:   fmt.Sprintf("%v", interaction.Value),
+		Timestamp: interaction.Timestamp,
+		Emotions:  make(map[string]float64),
+		Context: &EventContext{
+			Participants: []string{userID},
+			Mood:         "neutral",
+			Topics:       []string{},
+			UserState:    make(map[string]interface{}),
+		},
+	}
 }
 
 // newMemoryRecall creates a new memory recall instance

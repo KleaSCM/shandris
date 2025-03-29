@@ -315,6 +315,14 @@ func newSystemIntegration(
 	}
 }
 
+// ActivateSystems initializes and activates all cognitive systems for a session
+func (si *SystemIntegration) ActivateSystems(session *Session) {
+	session.ActiveSystems["mood"] = true
+	session.ActiveSystems["persona"] = true
+	session.ActiveSystems["topic"] = true
+	session.ActiveSystems["timeline"] = true
+}
+
 func (si *SystemIntegration) ProcessInteraction(
 	interaction *Interaction,
 	state *SessionState,

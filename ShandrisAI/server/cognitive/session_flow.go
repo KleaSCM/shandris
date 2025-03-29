@@ -142,6 +142,14 @@ func (cc *ContextCarrier) CopyContext(context *SessionContext) *SessionContext {
 	}
 }
 
+// SystemUpdates contains updates from all cognitive systems
+type SystemUpdates struct {
+	MoodUpdates     *MoodUpdate
+	PersonaUpdates  *PersonaUpdate
+	TopicUpdates    *TopicUpdate
+	TimelineUpdates *TimelineUpdate
+}
+
 // SessionFlowManager coordinates all cognitive systems across sessions
 type SessionFlowManager struct {
 	activeSession  *Session

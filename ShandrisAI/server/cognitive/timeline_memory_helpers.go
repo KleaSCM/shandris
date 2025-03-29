@@ -147,3 +147,95 @@ func (em *EmotionMatcher) MatchEmotions(context *EventContext, events map[string
 
 	return scores
 }
+
+func (pm *PatternMatcher) MatchPatterns(context *EventContext, events map[string]*MemoryEvent) map[string]float64 {
+	scores := make(map[string]float64)
+
+	for id, event := range events {
+		score := 0.0
+		for _, pattern := range pm.patterns {
+			if matchesPattern(event, pattern) {
+				score += calculatePatternScore(event, pattern)
+			}
+		}
+		scores[id] = score
+	}
+
+	return scores
+}
+
+func matchesPattern(event *MemoryEvent, pattern *RecallPattern) bool {
+	for _, trigger := range pattern.Triggers {
+		if event.Content == trigger {
+			return true
+		}
+	}
+	return false
+}
+
+func calculatePatternScore(event *MemoryEvent, pattern *RecallPattern) float64 {
+	score := 0.0
+	for key, weight := range pattern.Weights {
+		if value, exists := event.Emotions[key]; exists {
+			score += value * weight
+		}
+	}
+	return score
+}
+
+func (mr *MemoryRecall) calculateCombinedScore(contextScore, emotionScore, patternScore float64) float64 {
+	// Weight the different scores
+	weights := map[string]float64{
+		"context": 0.4,
+		"emotion": 0.3,
+		"pattern": 0.3,
+	}
+
+	// Calculate weighted average
+	return (contextScore * weights["context"]) +
+		(emotionScore * weights["emotion"]) +
+		(patternScore * weights["pattern"])
+}
+
+func getTimeContext(t time.Time) string {
+	hour := t.Hour()
+	switch {
+	case hour >= 5 && hour < 12:
+		return "morning"
+	case hour >= 12 && hour < 17:
+		return "afternoon"
+	case hour >= 17 && hour < 22:
+		return "evening"
+	default:
+		return "night"
+	}
+}
+
+func calculateEmotionalResonance(event *MemoryEvent, context *EventContext) float64 {
+	resonance := 0.0
+
+	// Check emotional context
+	if context.Mood != "" {
+		if emotion, exists := event.Emotions[context.Mood]; exists {
+			resonance += emotion
+		}
+	}
+
+	// Check topic relevance
+	for _, topic := range context.Topics {
+		if contains(event.Tags, topic) {
+			resonance += 0.2
+		}
+	}
+
+	return resonance
+}
+
+func contains(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}

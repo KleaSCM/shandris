@@ -7,6 +7,28 @@ import (
 	"github.com/google/uuid"
 )
 
+// SessionHistory tracks and manages session records
+type SessionHistory struct {
+	sessions    map[string]*Session // Maps session ID to session
+	userHistory map[string][]string // Maps user ID to their session IDs
+}
+
+func newSessionHistory() *SessionHistory {
+	return &SessionHistory{
+		sessions:    make(map[string]*Session),
+		userHistory: make(map[string][]string),
+	}
+}
+
+// GetRecentSession returns the most recent session for a user if it exists
+func (sh *SessionHistory) GetRecentSession(userID string) *Session {
+	if sessionIDs, exists := sh.userHistory[userID]; exists && len(sessionIDs) > 0 {
+		lastSessionID := sessionIDs[len(sessionIDs)-1]
+		return sh.sessions[lastSessionID]
+	}
+	return nil
+}
+
 // SessionFlowManager coordinates all cognitive systems across sessions
 type SessionFlowManager struct {
 	activeSession  *Session

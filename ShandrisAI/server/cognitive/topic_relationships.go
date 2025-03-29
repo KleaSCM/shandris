@@ -118,6 +118,19 @@ type ClusterAnalysis struct {
 	Clusters      map[string][]string
 }
 
+func calculateSignificance(context *RelationshipContext) float64 {
+	// Calculate significance based on frequency and emotional impact
+	emotionalWeight := 0.0
+	for _, value := range context.EmotionalTone {
+		emotionalWeight += value
+	}
+	if len(context.EmotionalTone) > 0 {
+		emotionalWeight /= float64(len(context.EmotionalTone))
+	}
+
+	return (float64(context.Frequency)*0.6 + emotionalWeight*0.4) / 100.0
+}
+
 // TopicRelationshipManager handles sophisticated topic relationships
 type TopicRelationshipManager struct {
 	relationships   map[string]*TopicRelationship

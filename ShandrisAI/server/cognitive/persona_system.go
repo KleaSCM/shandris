@@ -5,6 +5,19 @@ import (
 	"time"
 )
 
+// TransitionManager handles transitions between different personas
+type TransitionManager struct {
+	transitions map[string]map[string]float64 // Maps from persona ID to target persona ID and transition probability
+	cooldowns   map[string]time.Time          // Tracks cooldown periods for transitions
+}
+
+func newTransitionManager() *TransitionManager {
+	return &TransitionManager{
+		transitions: make(map[string]map[string]float64),
+		cooldowns:   make(map[string]time.Time),
+	}
+}
+
 // PersonaSystem manages different personality modes
 type PersonaSystem struct {
 	personas      map[string]*Persona

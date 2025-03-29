@@ -41,6 +41,13 @@ type TopicManager struct {
 	DomainRules  map[string]DomainRule
 }
 
+// ProcessInteraction processes an interaction and updates the topic context
+func (tm *TopicManager) ProcessInteraction(interaction *Interaction, context *TopicContext) *TopicUpdate {
+	return &TopicUpdate{
+		ActiveTopics: tm.ActiveTopics,
+	}
+}
+
 type TopicTransition struct {
 	From      string
 	To        string

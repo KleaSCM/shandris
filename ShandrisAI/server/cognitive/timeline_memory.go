@@ -16,6 +16,21 @@ type TimelineMemory struct {
 	decay         *MemoryDecay
 }
 
+// ProcessInteraction processes an interaction and updates the memory context
+func (tm *TimelineMemory) ProcessInteraction(interaction *Interaction, context *MemoryContext) *TimelineUpdate {
+	// Get focus points from recent events
+	focusPoints := make([]string, 0)
+	for _, eventID := range context.RecentEvents {
+		if event, exists := tm.events[eventID]; exists {
+			focusPoints = append(focusPoints, event.Content)
+		}
+	}
+
+	return &TimelineUpdate{
+		FocusPoints: focusPoints,
+	}
+}
+
 // MemoryEvent represents a single memorable event
 type MemoryEvent struct {
 	ID          string

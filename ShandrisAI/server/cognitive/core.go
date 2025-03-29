@@ -20,6 +20,13 @@ type MoodEngine struct {
 	Modifiers    map[string]float64
 }
 
+// ProcessInteraction processes an interaction and updates the emotional context
+func (m *MoodEngine) ProcessInteraction(interaction *Interaction, context *EmotionalContext) *MoodUpdate {
+	return &MoodUpdate{
+		NewState: &m.CurrentState,
+	}
+}
+
 type MoodState struct {
 	Primary   string         `json:"primary"`
 	Secondary string         `json:"secondary"`

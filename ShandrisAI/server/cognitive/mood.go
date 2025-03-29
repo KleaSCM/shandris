@@ -254,6 +254,15 @@ func (m *MoodEngineImpl) GetCurrentMood() MoodState {
 	return m.CurrentState
 }
 
+// ProcessInteraction processes an interaction and updates the emotional context
+func (m *MoodEngineImpl) ProcessInteraction(interaction *Interaction, context *EmotionalContext) *MoodUpdate {
+	// Update mood based on interaction and context
+	m.UpdateMood(context.UserContext)
+	return &MoodUpdate{
+		NewState: &m.CurrentState,
+	}
+}
+
 func (m *MoodEngineImpl) ProjectMoodInfluence(input string) float64 {
 	// Implement mood projection logic
 	return 0.0 // Placeholder

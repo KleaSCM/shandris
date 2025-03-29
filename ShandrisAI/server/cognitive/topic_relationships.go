@@ -111,6 +111,13 @@ type RelationshipFilters struct {
 	ContextRequirements map[string]float64
 }
 
+type ClusterAnalysis struct {
+	Topics        []string
+	Relationships map[string]float64
+	Centrality    map[string]float64
+	Clusters      map[string][]string
+}
+
 // TopicRelationshipManager handles sophisticated topic relationships
 type TopicRelationshipManager struct {
 	relationships   map[string]*TopicRelationship
@@ -383,4 +390,52 @@ func (trm *TopicRelationshipManager) calculateRelevanceScore(rel *TopicRelations
 	}
 
 	return score
+}
+
+func (trm *TopicRelationshipManager) calculateClusterStrength(topic1, topic2 string) float64 {
+	// Find direct relationship between topics
+	for _, rel := range trm.relationships {
+		if (rel.FromTopic == topic1 && rel.ToTopic == topic2) ||
+			(rel.Bidirectional && rel.FromTopic == topic2 && rel.ToTopic == topic1) {
+			return rel.Strength
+		}
+	}
+	return 0.0
+}
+
+func (trm *TopicRelationshipManager) calculateTopicCentrality(topic string, relationships map[string]float64) float64 {
+	var totalStrength float64
+	var count int
+	for key, strength := range relationships {
+		if key[:len(topic)] == topic || key[len(key)-len(topic):] == topic {
+			totalStrength += strength
+			count++
+		}
+	}
+	if count == 0 {
+		return 0.0
+	}
+	return totalStrength / float64(count)
+}
+
+func (trm *TopicRelationshipManager) identifySubClusters(analysis *ClusterAnalysis) map[string][]string {
+	clusters := make(map[string][]string)
+	threshold := 0.3 // Minimum relationship strength for clustering
+
+	// Simple clustering based on relationship strength
+	for i, topic1 := range analysis.Topics {
+		cluster := []string{topic1}
+		for j, topic2 := range analysis.Topics {
+			if i != j {
+				key := topic1 + ":" + topic2
+				if strength, exists := analysis.Relationships[key]; exists && strength >= threshold {
+					cluster = append(cluster, topic2)
+				}
+			}
+		}
+		if len(cluster) > 1 {
+			clusters[topic1] = cluster
+		}
+	}
+	return clusters
 }

@@ -67,6 +67,40 @@ func (rca *RelationshipContextAnalyzer) analyzeDomainImpact(context *Interaction
 	return 0.5
 }
 
+func (rca *RelationshipContextAnalyzer) MatchesRequirements(context *RelationshipContext, requirements map[string]float64) bool {
+	if requirements == nil {
+		return true
+	}
+
+	for key, requiredValue := range requirements {
+		if value, exists := context.UserContext[key]; !exists || value < requiredValue {
+			return false
+		}
+	}
+	return true
+}
+
+func (rca *RelationshipContextAnalyzer) CalculateRelevance(context *RelationshipContext, requirements map[string]float64) float64 {
+	if requirements == nil {
+		return 1.0
+	}
+
+	var totalScore float64
+	var count int
+
+	for key, requiredValue := range requirements {
+		if value, exists := context.UserContext[key]; exists {
+			totalScore += math.Min(value/requiredValue, 1.0)
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0.0
+	}
+	return totalScore / float64(count)
+}
+
 type RelationshipStrengthCalculator struct {
 	baseWeight    float64
 	contextWeight float64
@@ -332,6 +366,29 @@ func (trm *TopicRelationshipManager) AnalyzeTopicCluster(topics []string) *Clust
 }
 
 // Helper functions
+
+func updateSharedTraits(existing []string, newTraits []string) []string {
+	// Create a map to track unique traits
+	traitMap := make(map[string]bool)
+
+	// Add existing traits
+	for _, trait := range existing {
+		traitMap[trait] = true
+	}
+
+	// Add new traits
+	for _, trait := range newTraits {
+		traitMap[trait] = true
+	}
+
+	// Convert map back to slice
+	result := make([]string, 0, len(traitMap))
+	for trait := range traitMap {
+		result = append(result, trait)
+	}
+
+	return result
+}
 
 func (trm *TopicRelationshipManager) updateRelationshipContext(
 	rel *TopicRelationship,

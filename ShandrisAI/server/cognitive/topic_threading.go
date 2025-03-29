@@ -88,10 +88,10 @@ func (tm *TopicManager) ProcessInput(input string, context *EmotionalContext) er
 
 	// Update or create threads
 	for _, topic := range topics {
-		if thread := tm.findRelevantThread(topic); thread != nil {
-			tm.updateThread(thread, topic, context)
+		if thread := tm.findRelevantThread(topic.Domain); thread != nil {
+			tm.updateThread(thread, topic.Domain, context)
 		} else {
-			tm.createNewThread(topic, context)
+			tm.createNewThread(topic.Domain, context)
 		}
 	}
 

@@ -53,8 +53,15 @@ func (rca *RelationshipContextAnalyzer) AnalyzeContext(context *InteractionConte
 }
 
 func (rca *RelationshipContextAnalyzer) analyzeEmotionalImpact(context *InteractionContext) float64 {
-	// Placeholder implementation
-	return 0.5
+	if context == nil || len(context.EmotionalTone) == 0 {
+		return 0.5
+	}
+
+	var totalImpact float64
+	for _, value := range context.EmotionalTone {
+		totalImpact += value
+	}
+	return totalImpact / float64(len(context.EmotionalTone))
 }
 
 func (rca *RelationshipContextAnalyzer) analyzeUserImpact(context *InteractionContext) float64 {

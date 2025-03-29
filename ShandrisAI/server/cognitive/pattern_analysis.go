@@ -329,6 +329,33 @@ func (pa *PatternAnalysisEngine) analyzeTiming(gap time.Duration) PatternResult 
 	return PatternResult{}
 }
 
+type MoodTransition struct {
+	From      string
+	To        string
+	Timestamp time.Time
+}
+
+func (pa *PatternAnalysisEngine) detectMoodTransitions() []MoodTransition {
+	var transitions []MoodTransition
+	if len(pa.contextHistory) < 2 {
+		return transitions
+	}
+
+	// Detect mood changes between consecutive contexts
+	for i := 1; i < len(pa.contextHistory); i++ {
+		prevMood := pa.contextHistory[i-1].Mood
+		currMood := pa.contextHistory[i].Mood
+		if prevMood != nil && currMood != nil && prevMood.State != currMood.State {
+			transitions = append(transitions, MoodTransition{
+				From:      prevMood.State,
+				To:        currMood.State,
+				Timestamp: pa.contextHistory[i].Timestamp,
+			})
+		}
+	}
+	return transitions
+}
+
 // Add more sophisticated mood patterns
 func initializeAdvancedMoodPatterns() map[string]MoodPattern {
 	return map[string]MoodPattern{

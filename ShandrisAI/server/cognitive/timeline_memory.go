@@ -2,6 +2,7 @@ package cognitive
 
 import (
 	"math"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -273,13 +274,46 @@ func (tm *TimelineMemory) updateRelationships(event *MemoryEvent) {
 }
 
 func (tm *TimelineMemory) scoreMemories(memories []*MemoryEvent, context *EventContext) []*ScoredMemory {
-	// Implementation for scoring memories based on relevance and decay
-	return nil
+	var scored []*ScoredMemory
+	for _, memory := range memories {
+		decayFactor := tm.decay.CalculateDecayFactor(memory)
+		contextRelevance := 0.0
+		if memory.Context != nil && context != nil {
+			// Score based on matching topics
+			for _, topic := range memory.Context.Topics {
+				for _, contextTopic := range context.Topics {
+					if topic == contextTopic {
+						contextRelevance += 0.2
+					}
+				}
+			}
+			// Score based on matching mood
+			if memory.Context.Mood == context.Mood {
+				contextRelevance += 0.3
+			}
+		}
+		scored = append(scored, &ScoredMemory{
+			Event:     memory,
+			Score:     memory.Importance * decayFactor * (1 + contextRelevance),
+			Recency:   decayFactor,
+			Relevance: contextRelevance,
+		})
+	}
+	return scored
 }
 
 func (tm *TimelineMemory) getTopMemories(scored []*ScoredMemory, limit int) []*MemoryEvent {
-	// Implementation for selecting top memories
-	return nil
+	// Sort memories by score in descending order
+	sort.Slice(scored, func(i, j int) bool {
+		return scored[i].Score > scored[j].Score
+	})
+
+	// Get top N memories
+	result := make([]*MemoryEvent, 0, limit)
+	for i := 0; i < limit && i < len(scored); i++ {
+		result = append(result, scored[i].Event)
+	}
+	return result
 }
 
 func (tm *TimelineMemory) isUpcomingAnniversary(marker *TimelineMarker, current time.Time) bool {

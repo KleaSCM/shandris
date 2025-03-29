@@ -22,7 +22,7 @@ func calculateTrustImpact(event *MemoryEvent) float64 {
 		impact = 0.05
 	case EmotionalEvent:
 		impact = 0.1
-	case RelationshipEvent:
+	case RelationshipInteractionEvent:
 		impact = 0.15
 	}
 
@@ -42,7 +42,7 @@ func calculateIntimacyImpact(event *MemoryEvent) float64 {
 		impact = 0.1
 	case EmotionalEvent:
 		impact = 0.15
-	case RelationshipEvent:
+	case RelationshipInteractionEvent:
 		impact = 0.2
 	}
 
